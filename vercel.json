@@ -7,5 +7,10 @@
         { "key": "X-Frame-Options", "value": "ALLOWALL" }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "api/webhook.js": {
+      "maxDuration": 10
+    }
+  }
 }
