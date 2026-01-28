@@ -1,5 +1,7 @@
-const N8N_AI_URL = "https://YOUR.app.n8n.cloud/webhook/tg-form/ai";
-const N8N_SUBMIT_URL = "https://YOUR.app.n8n.cloud/webhook/tg-form/submit";
+// Теперь WebApp ходит на свои же API-роуты (Vercel), а Vercel уже проксирует в n8n.
+// Это убирает CORS.
+const AI_URL = "/api/ai";
+const SUBMIT_URL = "/api/submit";
 
 const tg = window.Telegram?.WebApp;
 tg?.ready();
@@ -15,8 +17,7 @@ const submitBtn = document.getElementById("submitBtn");
 const globalStatus = document.getElementById("globalStatus");
 
 function getSizes() {
-  return Array.from(document.querySelectorAll(".check input:checked"))
-    .map(i => i.value);
+  return Array.from(document.querySelectorAll(".check input:checked")).map((i) => i.value);
 }
 
 function getDraft() {
@@ -24,49 +25,64 @@ function getDraft() {
     topic: topic.value.trim(),
     title: title.value.trim(),
     subtitle: subtitle.value.trim(),
-    sizes: getSizes()
+    sizes: getSizes(),
   };
+}
+
+async function postJSON(url, payload) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  // На ошибках тоже пытаемся прочитать тело, чтобы показать полезное сообщение
+  const text = await res.text();
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    json = { ok: false, error: "Invalid JSON response", raw: text };
+  }
+
+  if (!res.ok) {
+    return { ok: false, error: json?.error || `HTTP ${res.status}`, details: json };
+  }
+  return json;
 }
 
 async function regenerate(field) {
   globalStatus.textContent = "Генерация…";
 
-  const res = await fetch(N8N_AI_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      initData: tg?.initData || "",
-      action: "regenerate",
-      target_fields: [field],
-      draft: getDraft()
-    })
-  });
+  const payload = {
+    initData: tg?.initData || "",
+    action: "regenerate",
+    target_fields: [field],
+    draft: getDraft(),
+  };
 
-  const json = await res.json();
-  if (json?.fields?.[field]) {
+  const json = await postJSON(AI_URL, payload);
+
+  if (json?.ok && json?.fields?.[field]) {
     if (field === "title") title.value = json.fields[field];
     if (field === "subtitle") subtitle.value = json.fields[field];
     globalStatus.textContent = "Готово";
   } else {
-    globalStatus.textContent = "Ошибка генерации";
+    globalStatus.textContent = `Ошибка: ${json?.error || "нет поля в ответе"}`;
   }
 }
 
 async function submit() {
   globalStatus.textContent = "Отправка…";
 
-  const res = await fetch(N8N_SUBMIT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      initData: tg?.initData || "",
-      action: "submit",
-      draft: getDraft()
-    })
-  });
+  const payload = {
+    initData: tg?.initData || "",
+    action: "submit",
+    draft: getDraft(),
+  };
 
-  const json = await res.json();
-  globalStatus.textContent = json.ok ? "Готово" : "Ошибка";
+  const json = await postJSON(SUBMIT_URL, payload);
+  globalStatus.textContent = json?.ok ? "Готово" : `Ошибка: ${json?.error || "unknown"}`;
 }
 
 regenTitle.onclick = () => regenerate("title");
