@@ -14,8 +14,10 @@ const submitBtn = document.getElementById("submitBtn");
 
 const globalStatus = document.getElementById("globalStatus");
 
+/* ================= helpers ================= */
+
 function getSizes() {
-  return Array.from(document.querySelectorAll(".check input:checked")).map((i) => i.value);
+  return Array.from(document.querySelectorAll(".check input:checked")).map(i => i.value);
 }
 
 function getDraft() {
@@ -27,34 +29,23 @@ function getDraft() {
   };
 }
 
-/** UI helpers */
 function setStatus(text, type = "") {
   globalStatus.textContent = text || "";
-  globalStatus.dataset.type = type; // если захочешь стилизовать: [data-type="err"] { color: ... }
+  globalStatus.dataset.type = type;
 }
 
-function setBusy(button, busy, label = null) {
-  if (!button) return;
-  if (busy) {
-    button.dataset.prevText = button.textContent;
-    button.disabled = true;
-    button.textContent = label ?? "…";
-  } else {
-    button.disabled = false;
-    if (button.dataset.prevText) button.textContent = button.dataset.prevText;
-    delete button.dataset.prevText;
-  }
+function setBusy(btn, busy) {
+  if (!btn) return;
+  btn.disabled = busy;
 }
 
 function setAllBusy(busy) {
-  // при submit блокируем всё
   regenTitle.disabled = busy;
   regenSubtitle.disabled = busy;
   submitBtn.disabled = busy;
 }
 
-/** Network with timeout */
-async function postJSON(url, payload, { timeoutMs = 15000 } = {}) {
+async function postJSON(url, payload, { timeoutMs = 20000 } = {}) {
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -71,40 +62,30 @@ async function postJSON(url, payload, { timeoutMs = 15000 } = {}) {
     try {
       json = JSON.parse(text);
     } catch {
-      json = { ok: false, error: "Invalid JSON response", raw: text };
+      json = { ok: false, error: "Invalid JSON" };
     }
 
     if (!res.ok) {
-      return { ok: false, error: json?.error || `HTTP ${res.status}`, details: json };
+      return { ok: false, error: json?.error || `HTTP ${res.status}` };
     }
+
     return json;
   } catch (e) {
-    if (e?.name === "AbortError") return { ok: false, error: "timeout" };
-    return { ok: false, error: e?.message || "network error" };
+    if (e.name === "AbortError") return { ok: false, error: "timeout" };
+    return { ok: false, error: "network error" };
   } finally {
     clearTimeout(t);
   }
 }
 
-function validateBasic() {
-  if (!topic.value.trim()) {
-    setStatus("Ошибка: заполни поле «Тема»", "err");
-    topic.focus();
-    return false;
-  }
-  if (getSizes().length === 0) {
-    setStatus("Ошибка: выбери хотя бы один размер", "err");
-    return false;
-  }
-  return true;
-}
+/* ================= generation ================= */
 
-async function regenerate(field) {
-  if (!validateBasic()) return;
+async function regenerate(field, { silent = false } = {}) {
+  if (!topic.value.trim()) return;
 
   const btn = field === "title" ? regenTitle : regenSubtitle;
-  setBusy(btn, true, "⟳");
-  setStatus("Генерация…", "info");
+  setBusy(btn, true);
+  if (!silent) setStatus("Генерация…", "info");
 
   const payload = {
     initData: tg?.initData || "",
@@ -113,26 +94,76 @@ async function regenerate(field) {
     draft: getDraft(),
   };
 
-  const json = await postJSON(AI_URL, payload, { timeoutMs: 20000 });
+  const json = await postJSON(AI_URL, payload);
 
   if (json?.ok && json?.fields?.[field]) {
     if (field === "title") title.value = json.fields[field];
     if (field === "subtitle") subtitle.value = json.fields[field];
-    setStatus("Готово ✓", "ok");
+    if (!silent) setStatus("Готово ✓", "ok");
+    setBusy(btn, false);
+    return true;
   } else {
-    const msg = json?.error ? `Ошибка: ${json.error}` : "Ошибка: нет поля в ответе";
-    setStatus(msg, "err");
+    if (!silent) setStatus(`Ошибка: ${json?.error || "нет поля в ответе"}`, "err");
+    setBusy(btn, false);
+    return false;
   }
-
-  setBusy(btn, false);
 }
 
+/* ================= auto flow from topic ================= */
+
+// чтобы не триггерилось много раз
+let topicAutoTriggered = false;
+
+topic.addEventListener("blur", async () => {
+  const value = topic.value.trim();
+  if (!value) return;
+
+  // если уже запускали — не повторяем
+  if (topicAutoTriggered) return;
+
+  // если оба поля уже заполнены — не надо
+  if (title.value.trim() && subtitle.value.trim()) return;
+
+  topicAutoTriggered = true;
+  setStatus("Генерация заголовка…", "info");
+
+  // 1) title
+  if (!title.value.trim()) {
+    const okTitle = await regenerate("title", { silent: true });
+    if (!okTitle) {
+      setStatus("Ошибка генерации заголовка", "err");
+      return;
+    }
+  }
+
+  // 2) subtitle
+  if (!subtitle.value.trim()) {
+    setStatus("Генерация подзаголовка…", "info");
+    const okSub = await regenerate("subtitle", { silent: true });
+    if (!okSub) {
+      setStatus("Ошибка генерации подзаголовка", "err");
+      return;
+    }
+  }
+
+  setStatus("Готово ✓", "ok");
+});
+
+/* ================= submit ================= */
+
 async function submit() {
-  if (!validateBasic()) return;
+  if (!topic.value.trim()) {
+    setStatus("Ошибка: заполни тему", "err");
+    topic.focus();
+    return;
+  }
+
+  if (getSizes().length === 0) {
+    setStatus("Ошибка: выбери размер", "err");
+    return;
+  }
 
   setAllBusy(true);
-  const prevText = submitBtn.textContent;
-  submitBtn.textContent = "Генерация…";
   setStatus("Отправка…", "info");
 
   const payload = {
@@ -149,9 +180,10 @@ async function submit() {
     setStatus(`Ошибка: ${json?.error || "unknown"}`, "err");
   }
 
-  submitBtn.textContent = prevText;
   setAllBusy(false);
 }
+
+/* ================= bindings ================= */
 
 regenTitle.onclick = () => regenerate("title");
 regenSubtitle.onclick = () => regenerate("subtitle");
