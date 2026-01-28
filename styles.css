@@ -124,7 +124,7 @@ body {
 }
 
 .textareaWithBtn {
-  padding-right: 52px; /* место под кнопку ↻ */
+  padding-right: 52px;
 }
 
 .iconInField {
@@ -233,23 +233,73 @@ body {
   transform: scale(0.98);
 }
 
-/* ===== Status ===== */
+/* ===== Status (only for errors now) ===== */
 .globalStatus {
   margin-top: 8px;
   font-size: 12px;
   opacity: 0.95;
 }
 
-.globalStatus[data-type="ok"] {
-  color: var(--teal);
-}
-
 .globalStatus[data-type="err"] {
   color: var(--orange);
 }
 
-.globalStatus[data-type="info"] {
-  color: var(--purple-4);
+/* ===== Result styles ===== */
+.results {
+  display: grid;
+  gap: 8px;
+}
+
+.resultRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.resultInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.resultTitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.resultInfo a {
+  font-size: 12px;
+  color: rgba(186, 154, 241, 0.95);
+  text-decoration: none;
+  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 240px;
+}
+
+.resultInfo a:hover {
+  text-decoration: underline;
+}
+
+.resultBtn {
+  background: rgba(145, 93, 230, 0.18);
+  border: 1px solid rgba(145, 93, 230, 0.35);
+  color: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.resultBtn:active {
+  transform: scale(0.98);
 }
 
 /* ===== Disabled state ===== */
@@ -259,16 +309,34 @@ body {
   cursor: not-allowed;
 }
 
-/* ===== Spinner (clean, centered) ===== */
+/* ===== Spinner (small buttons + centered primary) ===== */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* primary button loader */
-.primary {
-  position: relative;
+/* small ↻ loader */
+.iconInField {
+  position: absolute;
 }
 
+.iconInField[disabled] {
+  color: rgba(255,255,255,0.35);
+}
+
+.iconInField[disabled]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,0.30);
+  border-top-color: var(--white);
+  animation: spin 0.7s linear infinite;
+}
+
+/* primary loader centered */
 .primary[disabled] {
   color: rgba(255,255,255,0.85);
 }
@@ -285,4 +353,3 @@ body {
   border-top-color: #fff;
   animation: spin 0.7s linear infinite;
 }
-
