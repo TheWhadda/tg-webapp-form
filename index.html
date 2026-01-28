@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Форма генерации</title>
+
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header__title">Форма</div>
+      <div class="header__meta" id="tgMeta">Telegram WebApp</div>
+    </header>
+
+    <main class="card">
+      <section class="section">
+        <label class="label" for="topic">Тема</label>
+        <input
+          id="topic"
+          class="input"
+          type="text"
+          placeholder="Например: Новая акция для малого бизнеса"
+        />
+        <div class="hint">Коротко: о чём изображение и для кого.</div>
+      </section>
+
+      <section class="section">
+        <div class="labelRow">
+          <label class="label" for="title">Заголовок</label>
+          <button class="iconBtn" id="regenTitle" type="button" title="Перегенерировать">
+            ↻
+          </button>
+        </div>
+
+        <textarea
+          id="title"
+          class="textarea"
+          rows="2"
+          placeholder="Введите заголовок или нажмите ↻"
+        ></textarea>
+
+        <div class="row">
+          <div class="char" id="titleCount">0</div>
+          <div class="status" id="titleStatus"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="labelRow">
+          <label class="label" for="subtitle">Подзаголовок</label>
+          <button class="iconBtn" id="regenSubtitle" type="button" title="Перегенерировать">
+            ↻
+          </button>
+        </div>
+
+        <textarea
+          id="subtitle"
+          class="textarea"
+          rows="3"
+          placeholder="Введите подзаголовок или нажмите ↻"
+        ></textarea>
+
+        <div class="row">
+          <div class="char" id="subtitleCount">0</div>
+          <div class="status" id="subtitleStatus"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="label">Размеры</div>
+
+        <div class="sizes">
+          <label class="check">
+            <input type="checkbox" value="600x600" checked />
+            <span class="check__box"></span>
+            <span class="check__text">600 × 600</span>
+          </label>
+
+          <label class="check">
+            <input type="checkbox" value="1080x1350" checked />
+            <span class="check__box"></span>
+            <span class="check__text">1080 × 1350</span>
+          </label>
+
+          <label class="check">
+            <input type="checkbox" value="1080x607" />
+            <span class="check__box"></span>
+            <span class="check__text">1080 × 607</span>
+          </label>
+        </div>
+
+        <div class="hint">Можно выбрать несколько размеров.</div>
+      </section>
+
+      <section class="section">
+        <button class="primary" id="submitBtn" type="button">
+          Генерация
+        </button>
+        <div class="globalStatus" id="globalStatus"></div>
+      </section>
+
+      <section class="section output" id="output" hidden>
+        <div class="label">Результат</div>
+        <div class="results" id="results"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
