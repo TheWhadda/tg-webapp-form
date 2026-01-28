@@ -23,14 +23,13 @@ Amaranth:     #F6D1E9
   --orange: #f9ded6;
   --pink: #f6d1e9;
 
-  /* “Surface” сделаем через прозрачность белого на чёрном, чтобы не вводить новые HEX */
   --surface: rgba(255, 255, 255, 0.06);
-  --surface-2: rgba(255, 255, 255, 0.09);
   --text-muted: rgba(255, 255, 255, 0.65);
   --text-dim: rgba(255, 255, 255, 0.5);
   --stroke: rgba(255, 255, 255, 0.12);
 }
 
+/* ===== Base ===== */
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -42,6 +41,18 @@ body {
   padding: 16px;
 }
 
+/* ===== Utility fonts (Montserrat) ===== */
+.titleFont {
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 800;
+}
+
+.primaryFont {
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
 /* ===== Header ===== */
 .header {
   margin-bottom: 12px;
@@ -49,7 +60,6 @@ body {
 
 .header__title {
   font-size: 20px;
-  font-weight: 800;
   letter-spacing: 0.2px;
 }
 
@@ -77,12 +87,6 @@ body {
   color: var(--text-muted);
   margin-bottom: 8px;
   display: block;
-}
-
-.labelRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 /* ===== Inputs ===== */
@@ -114,36 +118,46 @@ body {
   box-shadow: 0 0 0 3px rgba(127, 66, 225, 0.25);
 }
 
+/* ===== Field wrapper with inside button ===== */
+.fieldWrap {
+  position: relative;
+}
+
+.textareaWithBtn {
+  padding-right: 52px; /* место под кнопку ↻ */
+}
+
+.iconInField {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(145, 93, 230, 0.18);
+  border: 1px solid rgba(145, 93, 230, 0.35);
+  color: var(--white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.iconInField:hover {
+  background: rgba(145, 93, 230, 0.26);
+  border-color: rgba(186, 154, 241, 0.5);
+}
+
+.iconInField:active {
+  transform: scale(0.96);
+}
+
 /* ===== Hints ===== */
 .hint {
   font-size: 12px;
   color: var(--text-dim);
   margin-top: 6px;
-}
-
-/* ===== Icon buttons (↻) ===== */
-.iconBtn {
-  background: rgba(145, 93, 230, 0.18);
-  border: 1px solid rgba(145, 93, 230, 0.35);
-  border-radius: 10px;
-  color: var(--white);
-  width: 34px;
-  height: 34px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
-  position: relative;
-}
-
-.iconBtn:hover {
-  background: rgba(145, 93, 230, 0.26);
-  border-color: rgba(186, 154, 241, 0.5);
-}
-
-.iconBtn:active {
-  transform: scale(0.96);
 }
 
 /* ===== Sizes (checkboxes) ===== */
@@ -206,7 +220,6 @@ body {
   border-radius: 14px;
   color: var(--white);
   font-size: 15px;
-  font-weight: 800;
   cursor: pointer;
   transition: transform 0.08s ease, background 0.15s ease;
   position: relative;
@@ -240,7 +253,7 @@ body {
 }
 
 /* ===== Disabled state ===== */
-.iconBtn[disabled],
+.iconInField[disabled],
 .primary[disabled] {
   opacity: 0.7;
   cursor: not-allowed;
@@ -251,12 +264,12 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* ↻ button: spinner centered, icon stays subtle */
-.iconBtn[disabled] {
+/* spinner for ↻ inside field */
+.iconInField[disabled] {
   color: rgba(255,255,255,0.35);
 }
 
-.iconBtn[disabled]::after {
+.iconInField[disabled]::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -269,7 +282,7 @@ body {
   animation: spin 0.7s linear infinite;
 }
 
-/* primary button: spinner on the right, text remains */
+/* spinner for primary button */
 .primary[disabled]::after {
   content: "";
   position: absolute;
