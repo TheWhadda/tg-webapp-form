@@ -8,12 +8,17 @@
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+  <!-- Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <div class="app">
     <header class="header">
-      <div class="header__title">Генератор изображений</div>
+      <div class="header__title titleFont">Генератор изображений</div>
       <div class="header__meta" id="tgMeta">Tochka Bank</div>
     </header>
 
@@ -30,35 +35,37 @@
       </section>
 
       <section class="section">
-        <div class="labelRow">
-          <label class="label" for="title">Заголовок</label>
-          <button class="iconBtn" id="regenTitle" type="button" title="Перегенерировать">
+        <label class="label" for="title">Заголовок</label>
+
+        <div class="fieldWrap">
+          <textarea
+            id="title"
+            class="textarea textareaWithBtn"
+            rows="2"
+            placeholder="Введите заголовок или нажмите ↻"
+          ></textarea>
+
+          <button class="iconInField" id="regenTitle" type="button" title="Перегенерировать">
             ↻
           </button>
         </div>
-
-        <textarea
-          id="title"
-          class="textarea"
-          rows="2"
-          placeholder="Введите заголовок или нажмите ↻"
-        ></textarea>
       </section>
 
       <section class="section">
-        <div class="labelRow">
-          <label class="label" for="subtitle">Подзаголовок</label>
-          <button class="iconBtn" id="regenSubtitle" type="button" title="Перегенерировать">
+        <label class="label" for="subtitle">Подзаголовок</label>
+
+        <div class="fieldWrap">
+          <textarea
+            id="subtitle"
+            class="textarea textareaWithBtn"
+            rows="3"
+            placeholder="Введите подзаголовок или нажмите ↻"
+          ></textarea>
+
+          <button class="iconInField" id="regenSubtitle" type="button" title="Перегенерировать">
             ↻
           </button>
         </div>
-
-        <textarea
-          id="subtitle"
-          class="textarea"
-          rows="3"
-          placeholder="Введите подзаголовок или нажмите ↻"
-        ></textarea>
       </section>
 
       <section class="section">
@@ -72,7 +79,7 @@
           </label>
 
           <label class="check">
-            <input type="checkbox" value="1080x1350" checked />
+            <input type="checkbox" value="1080x1350" />
             <span class="check__box"></span>
             <span class="check__text">1080 × 1350</span>
           </label>
@@ -88,8 +95,8 @@
       </section>
 
       <section class="section">
-        <button class="primary" id="submitBtn" type="button">
-          Генерация
+        <button class="primary primaryFont" id="submitBtn" type="button">
+          Вжух
         </button>
         <div class="globalStatus" id="globalStatus"></div>
       </section>
