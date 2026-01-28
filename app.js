@@ -1,215 +1,355 @@
-const AI_URL = "/api/ai";
-const SUBMIT_URL = "/api/submit";
+/* ===== Palette (from your image) =====
+Black:        #191919
+White:        #FFFFFF
+Main Purple 7:#7F42E1
+Main Purple 6:#915DE6
+Main Purple 4:#BA9AF1
+Main Purple 1:#F5F0FF
+Teal Light:   #CDECF1
+Orange Light: #F9DED6
+Amaranth:     #F6D1E9
+====================================== */
 
-const tg = window.Telegram?.WebApp;
-tg?.ready();
+:root {
+  --bg: #191919;
+  --white: #ffffff;
 
-const topic = document.getElementById("topic");
-const title = document.getElementById("title");
-const subtitle = document.getElementById("subtitle");
+  --purple-7: #7f42e1;
+  --purple-6: #915de6;
+  --purple-4: #ba9af1;
+  --purple-1: #f5f0ff;
 
-const regenTitle = document.getElementById("regenTitle");
-const regenSubtitle = document.getElementById("regenSubtitle");
-const submitBtn = document.getElementById("submitBtn");
+  --teal: #cdecf1;
+  --orange: #f9ded6;
+  --pink: #f6d1e9;
 
-const globalStatus = document.getElementById("globalStatus");
-
-const outputSection = document.getElementById("output");
-const resultsEl = document.getElementById("results");
-
-/* ================= helpers ================= */
-
-function getSizes() {
-  return Array.from(document.querySelectorAll(".check input:checked")).map(i => i.value);
+  --surface: rgba(255, 255, 255, 0.06);
+  --text-muted: rgba(255, 255, 255, 0.65);
+  --text-dim: rgba(255, 255, 255, 0.5);
+  --stroke: rgba(255, 255, 255, 0.12);
 }
 
-function getDraft() {
-  return {
-    topic: topic.value.trim(),
-    title: title.value.trim(),
-    subtitle: subtitle.value.trim(),
-    sizes: getSizes(),
-  };
+/* ===== Base ===== */
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--white);
 }
 
-function setError(text) {
-  globalStatus.textContent = text || "";
-  globalStatus.dataset.type = text ? "err" : "";
+.app {
+  padding: 16px;
 }
 
-function clearStatus() {
-  globalStatus.textContent = "";
-  globalStatus.dataset.type = "";
+/* ===== Utility fonts (Montserrat) ===== */
+.titleFont {
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 800;
 }
 
-function setBusy(btn, busy) {
-  if (!btn) return;
-  btn.disabled = busy;
+.primaryFont {
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.2px;
 }
 
-function setAllBusy(busy) {
-  regenTitle.disabled = busy;
-  regenSubtitle.disabled = busy;
-  submitBtn.disabled = busy;
+/* ===== Header ===== */
+.header {
+  margin-bottom: 12px;
 }
 
-function clearResults() {
-  if (resultsEl) resultsEl.innerHTML = "";
-  if (outputSection) outputSection.hidden = true;
+.header__title {
+  font-size: 20px;
+  letter-spacing: 0.2px;
 }
 
-function showResults(images = []) {
-  if (!resultsEl || !outputSection) return;
-
-  resultsEl.innerHTML = "";
-  outputSection.hidden = false;
-
-  for (const img of images) {
-    if (!img?.url) continue;
-
-    const row = document.createElement("div");
-    row.className = "resultRow";
-
-    const info = document.createElement("div");
-    info.className = "resultInfo";
-
-    const t = document.createElement("div");
-    t.className = "resultTitle";
-    t.textContent = img.size ? `Изображение ${img.size}` : "Изображение";
-
-    const link = document.createElement("a");
-    link.href = img.url;
-    link.target = "_blank";
-    link.rel = "noreferrer";
-    link.textContent = img.url;
-
-    info.appendChild(t);
-    info.appendChild(link);
-
-    const btn = document.createElement("button");
-    btn.className = "resultBtn";
-    btn.textContent = "Открыть";
-    btn.onclick = () => window.open(img.url, "_blank", "noreferrer");
-
-    row.appendChild(info);
-    row.appendChild(btn);
-
-    resultsEl.appendChild(row);
-  }
+.header__meta {
+  font-size: 12px;
+  color: var(--text-dim);
 }
 
-async function postJSON(url, payload, { timeoutMs = 20000 } = {}) {
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
-
-    const text = await res.text();
-    let json;
-    try { json = JSON.parse(text); } catch { json = { ok: false }; }
-
-    if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
-    return json;
-  } catch (e) {
-    return { ok: false, error: "network error" };
-  } finally {
-    clearTimeout(t);
-  }
+/* ===== Card ===== */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--stroke);
+  border-radius: 16px;
+  padding: 16px;
+  backdrop-filter: blur(6px);
 }
 
-/* ================= generation ================= */
-
-async function regenerate(field) {
-  if (!topic.value.trim()) return;
-
-  clearStatus();
-  const btn = field === "title" ? regenTitle : regenSubtitle;
-  setBusy(btn, true);
-
-  const payload = {
-    initData: tg?.initData || "",
-    action: "regenerate",
-    target_fields: [field],
-    draft: getDraft(),
-  };
-
-  const json = await postJSON(AI_URL, payload);
-
-  if (json?.ok && json?.fields?.[field]) {
-    if (field === "title") title.value = json.fields[field];
-    if (field === "subtitle") subtitle.value = json.fields[field];
-  } else {
-    setError("Ошибка генерации");
-  }
-
-  setBusy(btn, false);
+/* ===== Sections ===== */
+.section {
+  margin-bottom: 16px;
 }
 
-/* ================= auto flow ================= */
-
-let topicAutoTriggered = false;
-
-topic.addEventListener("blur", async () => {
-  if (!topic.value.trim()) return;
-  if (topicAutoTriggered) return;
-  if (title.value.trim() && subtitle.value.trim()) return;
-
-  topicAutoTriggered = true;
-  clearStatus();
-
-  if (!title.value.trim()) {
-    await regenerate("title");
-  }
-
-  if (!subtitle.value.trim()) {
-    await regenerate("subtitle");
-  }
-});
-
-/* ================= submit ================= */
-
-async function submit() {
-  clearStatus();
-  clearResults();
-
-  if (!topic.value.trim()) {
-    setError("Заполни тему");
-    return;
-  }
-
-  if (getSizes().length === 0) {
-    setError("Выбери размер");
-    return;
-  }
-
-  setAllBusy(true);
-
-  const payload = {
-    initData: tg?.initData || "",
-    action: "submit",
-    draft: getDraft(),
-  };
-
-  const json = await postJSON(SUBMIT_URL, payload, { timeoutMs: 60000 });
-
-  if (json?.ok) {
-    const images = json?.result?.images;
-    if (Array.isArray(images)) showResults(images);
-  } else {
-    setError("Ошибка генерации");
-  }
-
-  setAllBusy(false);
+.label {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: block;
 }
 
-/* ================= bindings ================= */
+/* ===== Inputs ===== */
+.input,
+.textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--white);
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
 
-regenTitle.onclick = () => regenerate("title");
-regenSubtitle.onclick = () => regenerate("subtitle");
-submitBtn.onclick = submit;
+.textarea {
+  resize: vertical;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: rgba(127, 66, 225, 0.55);
+  box-shadow: 0 0 0 3px rgba(127, 66, 225, 0.25);
+}
+
+/* ===== Field wrapper with inside button ===== */
+.fieldWrap {
+  position: relative;
+}
+
+.textareaWithBtn {
+  padding-right: 52px;
+}
+
+.iconInField {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(145, 93, 230, 0.18);
+  border: 1px solid rgba(145, 93, 230, 0.35);
+  color: var(--white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.iconInField:hover {
+  background: rgba(145, 93, 230, 0.26);
+  border-color: rgba(186, 154, 241, 0.5);
+}
+
+.iconInField:active {
+  transform: scale(0.96);
+}
+
+/* ===== Hints ===== */
+.hint {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 6px;
+}
+
+/* ===== Sizes (checkboxes) ===== */
+.sizes {
+  display: grid;
+  gap: 8px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--stroke);
+  padding: 10px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.check input {
+  display: none;
+}
+
+.check__box {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(186, 154, 241, 0.55);
+  border-radius: 6px;
+  box-sizing: border-box;
+  display: inline-block;
+  position: relative;
+}
+
+.check input:checked + .check__box {
+  border-color: var(--purple-7);
+  background: rgba(127, 66, 225, 0.22);
+}
+
+.check input:checked + .check__box::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--purple-7);
+}
+
+.check__text {
+  font-size: 14px;
+}
+
+/* ===== Primary button ===== */
+.primary {
+  width: 100%;
+  padding: 12px;
+  background: var(--purple-7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  color: var(--white);
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.08s ease, background 0.15s ease;
+  position: relative;
+}
+
+.primary:hover {
+  background: var(--purple-6);
+}
+
+.primary:active {
+  transform: scale(0.98);
+}
+
+/* ===== Status (only for errors now) ===== */
+.globalStatus {
+  margin-top: 8px;
+  font-size: 12px;
+  opacity: 0.95;
+}
+
+.globalStatus[data-type="err"] {
+  color: var(--orange);
+}
+
+/* ===== Result styles ===== */
+.results {
+  display: grid;
+  gap: 8px;
+}
+
+.resultRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.resultInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.resultTitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.resultInfo a {
+  font-size: 12px;
+  color: rgba(186, 154, 241, 0.95);
+  text-decoration: none;
+  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 240px;
+}
+
+.resultInfo a:hover {
+  text-decoration: underline;
+}
+
+.resultBtn {
+  background: rgba(145, 93, 230, 0.18);
+  border: 1px solid rgba(145, 93, 230, 0.35);
+  color: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.resultBtn:active {
+  transform: scale(0.98);
+}
+
+/* ===== Disabled state ===== */
+.iconInField[disabled],
+.primary[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ===== Spinner (small buttons + centered primary) ===== */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* small ↻ loader */
+.iconInField {
+  position: absolute;
+}
+
+.iconInField[disabled] {
+  color: rgba(255,255,255,0.35);
+}
+
+.iconInField[disabled]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,0.30);
+  border-top-color: var(--white);
+  animation: spin 0.7s linear infinite;
+}
+
+/* primary loader centered */
+.primary[disabled] {
+  color: rgba(255,255,255,0.85);
+}
+
+.primary[disabled]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  animation: spin 0.7s linear infinite;
+}
