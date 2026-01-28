@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Форма генерации</title>
+  <title>Генератор изображений</title>
 
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -13,8 +13,8 @@
 <body>
   <div class="app">
     <header class="header">
-      <div class="header__title">Форма</div>
-      <div class="header__meta" id="tgMeta">Telegram WebApp</div>
+      <div class="header__title">Генератор изображений</div>
+      <div class="header__meta" id="tgMeta">Tochka Bank</div>
     </header>
 
     <main class="card">
@@ -24,7 +24,7 @@
           id="topic"
           class="input"
           type="text"
-          placeholder="Например: Новая акция для малого бизнеса"
+          placeholder="Например: Кредитная карта на 3% годовых"
         />
         <div class="hint">Коротко: о чём изображение и для кого.</div>
       </section>
@@ -43,11 +43,6 @@
           rows="2"
           placeholder="Введите заголовок или нажмите ↻"
         ></textarea>
-
-        <div class="row">
-          <div class="char" id="titleCount">0</div>
-          <div class="status" id="titleStatus"></div>
-        </div>
       </section>
 
       <section class="section">
@@ -64,11 +59,6 @@
           rows="3"
           placeholder="Введите подзаголовок или нажмите ↻"
         ></textarea>
-
-        <div class="row">
-          <div class="char" id="subtitleCount">0</div>
-          <div class="status" id="subtitleStatus"></div>
-        </div>
       </section>
 
       <section class="section">
