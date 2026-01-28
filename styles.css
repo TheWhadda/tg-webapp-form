@@ -259,40 +259,30 @@ body {
   cursor: not-allowed;
 }
 
-/* ===== Spinner (clean) ===== */
+/* ===== Spinner (clean, centered) ===== */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* spinner for ↻ inside field */
-.iconInField[disabled] {
-  color: rgba(255,255,255,0.35);
+/* primary button loader */
+.primary {
+  position: relative;
 }
 
-.iconInField[disabled]::after {
+.primary[disabled] {
+  color: rgba(255,255,255,0.85);
+}
+
+.primary[disabled]::after {
   content: "";
   position: absolute;
   inset: 0;
   margin: auto;
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  border: 2px solid rgba(255,255,255,0.30);
-  border-top-color: var(--white);
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
   animation: spin 0.7s linear infinite;
 }
 
-/* spinner for primary button */
-.primary[disabled]::after {
-  content: "";
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  border: 2px solid rgba(255,255,255,0.45);
-  border-top-color: var(--white);
-  transform: translateY(-50%);
-  animation: spin 0.7s linear infinite;
-}
