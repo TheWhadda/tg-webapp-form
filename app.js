@@ -1,209 +1,154 @@
-const AI_URL = "/api/ai";
-const SUBMIT_URL = "/api/submit";
+const $ = (sel) => document.querySelector(sel);
 
-const tg = window.Telegram?.WebApp;
-tg?.ready();
+const topicEl = $("#topic");
+const titleEl = $("#title");
+const subtitleEl = $("#subtitle");
 
-const topic = document.getElementById("topic");
-const title = document.getElementById("title");
-const subtitle = document.getElementById("subtitle");
+const submitBtn = $("#submit");
+const errorBox = $("#error");
 
-const regenTitle = document.getElementById("regenTitle");
-const regenSubtitle = document.getElementById("regenSubtitle");
-const submitBtn = document.getElementById("submitBtn");
+const resultCard = $("#resultCard");
+const thumbEl = $("#thumb");
+const resultUrlEl = $("#resultUrl");
+const copyLinkBtn = $("#copyLink");
+const openLinkBtn = $("#openLink");
 
-const globalStatus = document.getElementById("globalStatus");
+const toastEl = $("#toast");
 
-const outputSection = document.getElementById("output");
-const resultsEl = document.getElementById("results");
-
-/* ================= helpers ================= */
-
-function getSizes() {
-  return Array.from(document.querySelectorAll(".check input:checked")).map(i => i.value);
+function getSelectedSize() {
+  const checked = document.querySelector('input[name="size"]:checked');
+  return checked ? checked.value : "600x600";
 }
 
-function getDraft() {
-  return {
-    topic: topic.value.trim(),
-    title: title.value.trim(),
-    subtitle: subtitle.value.trim(),
-    sizes: getSizes(),
-  };
+function setLoading(isLoading) {
+  submitBtn.disabled = isLoading;
+  submitBtn.classList.toggle("loading", isLoading);
 }
 
-function setError(text) {
-  globalStatus.textContent = text || "";
-  globalStatus.dataset.type = text ? "err" : "";
+function showError(msg) {
+  errorBox.hidden = !msg;
+  errorBox.textContent = msg || "";
 }
 
-function clearStatus() {
-  globalStatus.textContent = "";
-  globalStatus.dataset.type = "";
+function showToast(text = "Скопировано") {
+  toastEl.textContent = text;
+  toastEl.hidden = false;
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => (toastEl.hidden = true), 1200);
 }
 
-function setBusy(btn, busy) {
-  if (!btn) return;
-  btn.disabled = busy;
-}
-
-function setAllBusy(busy) {
-  regenTitle.disabled = busy;
-  regenSubtitle.disabled = busy;
-  submitBtn.disabled = busy;
-}
-
-function clearResults() {
-  if (resultsEl) resultsEl.innerHTML = "";
-  if (outputSection) outputSection.hidden = true;
-}
-
-function showResults(images = []) {
-  if (!resultsEl || !outputSection) return;
-
-  resultsEl.innerHTML = "";
-  outputSection.hidden = false;
-
-  for (const img of images) {
-    if (!img?.url) continue;
-
-    const row = document.createElement("div");
-    row.className = "resultRow";
-
-    const info = document.createElement("div");
-    info.className = "resultInfo";
-
-    const t = document.createElement("div");
-    t.className = "resultTitle";
-    t.textContent = img.size ? `Изображение ${img.size}` : "Изображение";
-
-    const link = document.createElement("a");
-    link.href = img.url;
-    link.target = "_blank";
-    link.rel = "noreferrer";
-    link.textContent = img.url;
-
-    info.appendChild(t);
-    info.appendChild(link);
-
-    const btn = document.createElement("button");
-    btn.className = "resultBtn";
-    btn.textContent = "Открыть";
-    btn.onclick = () => window.open(img.url, "_blank", "noreferrer");
-
-    row.appendChild(info);
-    row.appendChild(btn);
-    resultsEl.appendChild(row);
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (_) {
+    // fallback
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }
 
-async function postJSON(url, payload, { timeoutMs = 20000 } = {}) {
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), timeoutMs);
+/**
+ * Рендер результата:
+ * - заголовок без "600x600"
+ * - миниатюра
+ * - ссылка кликабельна и копирует URL
+ * - кнопка "Открыть" открывает URL
+ */
+function renderResult(url) {
+  resultCard.hidden = false;
+
+  // миниатюра (как есть)
+  thumbEl.src = url;
+
+  // ссылка в тексте (коротко отображаем, копируем полный)
+  resultUrlEl.textContent = url;
+
+  // кнопки
+  copyLinkBtn.onclick = async () => {
+    const ok = await copyToClipboard(url);
+    if (ok) showToast("Скопировано");
+    else showToast("Не удалось скопировать");
+  };
+
+  openLinkBtn.onclick = () => {
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+}
+
+/**
+ * Тут подключи свой реальный API.
+ * Сейчас — заглушка, чтобы было понятно, куда вставлять.
+ */
+async function generateImage() {
+  const payload = {
+    topic: topicEl.value.trim(),
+    title: titleEl.value.trim(),
+    subtitle: subtitleEl.value.trim(),
+    size: getSelectedSize()
+  };
+
+  if (!payload.topic) throw new Error("Заполните поле «Тема».");
+  if (!payload.title) throw new Error("Заполните поле «Заголовок».");
+  if (!payload.subtitle) throw new Error("Заполните поле «Подзаголовок».");
+
+  // --- ВАЖНО: заменить на реальный вызов ---
+  // Пример ожидаемого ответа:
+  // { ok: true, result: { images: [{ size: "600x600", url: "https://..." }] } }
+
+  // return fetch("YOUR_ENDPOINT", { method:"POST", headers:{...}, body: JSON.stringify(payload) }).then(r=>r.json());
+
+  // Заглушка:
+  return {
+    ok: true,
+    result: {
+      images: [
+        { size: payload.size, url: "https://res.cloudinary.com/demo/image/upload/sample.jpg" }
+      ]
+    }
+  };
+}
+
+submitBtn.addEventListener("click", async () => {
+  showError("");
+  setLoading(true);
 
   try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
+    const resp = await generateImage();
+    if (!resp || resp.ok !== true) {
+      throw new Error(resp?.error || "Не удалось получить результат.");
+    }
 
-    const text = await res.text();
-    let json;
-    try { json = JSON.parse(text); } catch { json = { ok: false }; }
+    // Берём первую картинку (теперь размер один, radio)
+    const url = resp.result?.images?.[0]?.url;
+    if (!url) throw new Error("В ответе нет url изображения.");
 
-    if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
-    return json;
+    renderResult(url);
   } catch (e) {
-    return { ok: false, error: "network error" };
+    showError(e?.message || "Ошибка");
   } finally {
-    clearTimeout(t);
+    setLoading(false);
   }
-}
-
-/* ================= generation ================= */
-
-async function regenerate(field) {
-  if (!topic.value.trim()) return;
-
-  clearStatus();
-  const btn = field === "title" ? regenTitle : regenSubtitle;
-  setBusy(btn, true);
-
-  const payload = {
-    initData: tg?.initData || "",
-    action: "regenerate",
-    target_fields: [field],
-    draft: getDraft(),
-  };
-
-  const json = await postJSON(AI_URL, payload, { timeoutMs: 20000 });
-
-  if (json?.ok && json?.fields?.[field]) {
-    if (field === "title") title.value = json.fields[field];
-    if (field === "subtitle") subtitle.value = json.fields[field];
-  } else {
-    setError("Ошибка генерации");
-  }
-
-  setBusy(btn, false);
-}
-
-/* ================= auto flow ================= */
-
-let topicAutoTriggered = false;
-
-topic.addEventListener("blur", async () => {
-  if (!topic.value.trim()) return;
-  if (topicAutoTriggered) return;
-  if (title.value.trim() && subtitle.value.trim()) return;
-
-  topicAutoTriggered = true;
-  clearStatus();
-
-  if (!title.value.trim()) await regenerate("title");
-  if (!subtitle.value.trim()) await regenerate("subtitle");
 });
 
-/* ================= submit ================= */
+// Кнопки перегенерации (пока заглушки — подключишь к своей логике)
+$("#regenTitle").addEventListener("click", () => {
+  // сюда твой генератор заголовка
+  showToast("Перегенерация заголовка (подключи логику)");
+});
 
-async function submit() {
-  clearStatus();
-  clearResults();
-
-  if (!topic.value.trim()) {
-    setError("Заполни тему");
-    return;
-  }
-
-  if (getSizes().length === 0) {
-    setError("Выбери размер");
-    return;
-  }
-
-  setAllBusy(true);
-
-  const payload = {
-    initData: tg?.initData || "",
-    action: "submit",
-    draft: getDraft(),
-  };
-
-  const json = await postJSON(SUBMIT_URL, payload, { timeoutMs: 60000 });
-
-  if (json?.ok) {
-    const images = json?.result?.images;
-    if (Array.isArray(images)) showResults(images);
-  } else {
-    setError("Ошибка генерации");
-  }
-
-  setAllBusy(false);
-}
-
-/* ================= bindings ================= */
-
-regenTitle.onclick = () => regenerate("title");
-regenSubtitle.onclick = () => regenerate("subtitle");
-submitBtn.onclick = submit;
+$("#regenSubtitle").addEventListener("click", () => {
+  // сюда твой генератор подзаголовка
+  showToast("Перегенерация подзаголовка (подключи логику)");
+});
