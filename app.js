@@ -13,13 +13,13 @@ const regenSubtitleBtn = $("#regenSubtitle");
 const submitBtn = $("#submit");
 const errorBox = $("#error");
 
+const resultTitleEl = $("#resultTitle");
 const resultCard = $("#resultCard");
 const thumbEl = $("#thumb");
 const copyLinkBtn = $("#copyLink");
 const openLinkBtn = $("#openLink");
 
 const toastEl = $("#toast");
-const jsStatusEl = $("#jsStatus");
 
 let titleTouched = false;
 let subtitleTouched = false;
@@ -29,10 +29,6 @@ let aiAbort = null;
 let submitAbort = null;
 
 let lastImageUrl = "";
-
-function setStatus(text) {
-  if (jsStatusEl) jsStatusEl.textContent = text || "";
-}
 
 function setSubmitLoading(isLoading) {
   submitBtn.disabled = !!isLoading;
@@ -58,6 +54,8 @@ function showToast(text = "Скопировано") {
 
 function hideResult() {
   lastImageUrl = "";
+
+  resultTitleEl.hidden = true;
   resultCard.hidden = true;
 
   thumbEl.hidden = true;
@@ -92,6 +90,7 @@ function renderResult(url) {
   lastImageUrl = url || "";
   if (!lastImageUrl) return;
 
+  resultTitleEl.hidden = false;
   resultCard.hidden = false;
 
   thumbEl.hidden = false;
@@ -160,7 +159,6 @@ async function generateTitle(topic, { force = false } = {}) {
   aiAbort = new AbortController();
 
   setIconLoading(regenTitleBtn, true);
-  setStatus("AI: заголовок…");
 
   try {
     const resp = await postJson(
@@ -187,7 +185,6 @@ async function generateSubtitle(topic, title, { force = false } = {}) {
   aiAbort = new AbortController();
 
   setIconLoading(regenSubtitleBtn, true);
-  setStatus("AI: подзаголовок…");
 
   try {
     const resp = await postJson(
@@ -218,11 +215,7 @@ async function autoGenerateFromTopic() {
     const t = await generateTitle(topic, { force: false });
     const finalTitle = t || titleEl.value.trim();
     await generateSubtitle(topic, finalTitle, { force: false });
-
-    setStatus("AI: готово ✅");
-    setTimeout(() => setStatus(""), 700);
   } catch (e) {
-    setStatus("");
     showError(e?.message || "Ошибка AI");
   }
 }
@@ -242,8 +235,6 @@ async function submitGenerate() {
   if (submitAbort) submitAbort.abort();
   submitAbort = new AbortController();
 
-  setStatus("Генерация изображения…");
-
   const resp = await postJson(SUBMIT_ENDPOINT, payload, submitAbort.signal);
 
   if (!resp?.ok) throw new Error(resp?.error || resp?.message || "Не удалось получить результат.");
@@ -255,16 +246,11 @@ async function submitGenerate() {
 }
 
 /* init */
-setStatus("JS: loaded ✅");
-
-// ✅ прячем сразу, до любых запросов
 hideResult();
 
-// marks
 titleEl.addEventListener("input", () => { titleTouched = true; });
 subtitleEl.addEventListener("input", () => { subtitleTouched = true; });
 
-// auto from topic
 topicEl.addEventListener("blur", autoGenerateFromTopic);
 topicEl.addEventListener("change", autoGenerateFromTopic);
 topicEl.addEventListener("keydown", (e) => {
@@ -275,7 +261,6 @@ topicEl.addEventListener("keydown", (e) => {
   }
 });
 
-// buttons
 regenTitleBtn.addEventListener("click", async () => {
   const topic = topicEl.value.trim();
   if (!topic) return showError("Сначала заполните «Тема».");
@@ -285,9 +270,7 @@ regenTitleBtn.addEventListener("click", async () => {
     const t = await generateTitle(topic, { force: true });
     await generateSubtitle(topic, t, { force: false });
     showToast("Заголовок обновлён");
-    setStatus("");
   } catch (e) {
-    setStatus("");
     showError(e?.message || "Ошибка генерации заголовка");
   }
 });
@@ -300,24 +283,20 @@ regenSubtitleBtn.addEventListener("click", async () => {
   try {
     await generateSubtitle(topic, titleEl.value.trim(), { force: true });
     showToast("Подзаголовок обновлён");
-    setStatus("");
   } catch (e) {
-    setStatus("");
     showError(e?.message || "Ошибка генерации подзаголовка");
   }
 });
 
 submitBtn.addEventListener("click", async () => {
   showError("");
-  hideResult();            // ✅ скрываем до ответа
+  hideResult();            // ✅ прячем до ответа
   setSubmitLoading(true);
 
   try {
     const url = await submitGenerate();
-    renderResult(url);     // ✅ показываем после ответа
-    setStatus("");
+    renderResult(url);     // ✅ показываем после успеха
   } catch (e) {
-    setStatus("");
     showError(e?.message || "Ошибка");
   } finally {
     setSubmitLoading(false);
