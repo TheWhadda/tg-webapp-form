@@ -1,5 +1,5 @@
 const AI_ENDPOINT = "/api/ai";
-const SUBMIT_ENDPOINT = "/api/create_submit";
+const SUBMIT_ENDPOINT = "/api/submit";
 
 const $ = (sel) => document.querySelector(sel);
 
