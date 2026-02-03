@@ -36,9 +36,9 @@ function setSubmitLoading(isLoading) {
 }
 
 function setIconLoading(btn, isLoading) {
-  // Важно: не используем disabled (в телеге оно может ломать стиль)
   btn.classList.toggle("loading", !!isLoading);
   btn.setAttribute("aria-busy", isLoading ? "true" : "false");
+  // НЕ ставим disabled, чтобы телега не ломала внешний вид
 }
 
 function showError(msg) {
@@ -56,14 +56,16 @@ function showToast(text = "Скопировано") {
 function hideResult() {
   lastImageUrl = "";
 
-  resultTitleEl.hidden = true;
-  resultCard.hidden = true;
+  if (resultTitleEl) resultTitleEl.hidden = true;
+  if (resultCard) resultCard.hidden = true;
 
-  thumbEl.hidden = true;
-  thumbEl.removeAttribute("src");
+  if (thumbEl) {
+    thumbEl.hidden = true;
+    thumbEl.removeAttribute("src");
+  }
 
-  copyLinkBtn.onclick = null;
-  openLinkBtn.onclick = null;
+  if (copyLinkBtn) copyLinkBtn.onclick = null;
+  if (openLinkBtn) openLinkBtn.onclick = null;
 }
 
 async function copyToClipboard(text) {
@@ -106,6 +108,7 @@ function renderResult(url) {
 }
 
 function buildContext() {
+  // context = only field values
   const t = (titleEl.value || "").trim();
   const s = (subtitleEl.value || "").trim();
   if (t && s) return `${t}\n\n${s}`;
@@ -133,6 +136,7 @@ async function postJson(url, body, signal) {
     const msg = data?.error || data?.message || text || `HTTP ${r.status}`;
     throw new Error(msg);
   }
+
   return data ?? text;
 }
 
@@ -291,12 +295,12 @@ regenSubtitleBtn.addEventListener("click", async () => {
 
 submitBtn.addEventListener("click", async () => {
   showError("");
-  hideResult();            // ✅ прячем до ответа
+  hideResult();            // скрываем до ответа
   setSubmitLoading(true);
 
   try {
     const url = await submitGenerate();
-    renderResult(url);     // ✅ показываем после успеха
+    renderResult(url);     // показываем после успеха
   } catch (e) {
     showError(e?.message || "Ошибка");
   } finally {
