@@ -5,11 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TochkaBankGen</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
 
-  <link rel="stylesheet" href="./style.css" />
+  <!-- ВАЖНО: абсолютный путь -->
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <div class="app">
@@ -21,23 +25,44 @@
     <main class="card">
       <section class="field">
         <label class="label" for="topic">Тема</label>
-        <input id="topic" class="input" type="text" value="Кредитная карта на 3% годовых" />
+        <input
+          id="topic"
+          class="input"
+          type="text"
+          placeholder="Например: Кредитная карта на 3% годовых"
+          autocomplete="off"
+        />
         <div class="hint">Коротко: о чём изображение и для кого.</div>
       </section>
 
       <section class="field">
         <label class="label" for="title">Заголовок</label>
         <div class="input-row">
-          <input id="title" class="input" type="text" value="Кредитная карта с выгодной ставкой 3%" />
-          <button id="regenTitle" class="icon-btn" type="button" aria-label="Перегенерировать заголовок">↻</button>
+          <input
+            id="title"
+            class="input"
+            type="text"
+            placeholder="Например: Кредитная карта с выгодной ставкой"
+            autocomplete="off"
+          />
+          <button id="regenTitle" class="icon-btn" type="button" aria-label="Перегенерировать заголовок">
+            ↻
+          </button>
         </div>
       </section>
 
       <section class="field">
         <label class="label" for="subtitle">Подзаголовок</label>
         <div class="input-row">
-          <textarea id="subtitle" class="textarea" rows="2">Экономьте на процентах и управляйте расходами выгодно</textarea>
-          <button id="regenSubtitle" class="icon-btn" type="button" aria-label="Перегенерировать подзаголовок">↻</button>
+          <textarea
+            id="subtitle"
+            class="textarea"
+            rows="2"
+            placeholder="Например: Экономьте на процентах и управляйте расходами"
+          ></textarea>
+          <button id="regenSubtitle" class="icon-btn" type="button" aria-label="Перегенерировать подзаголовок">
+            ↻
+          </button>
         </div>
       </section>
 
@@ -78,6 +103,7 @@
           <span class="btn-text">Вжух</span>
           <span class="spinner" aria-hidden="true"></span>
         </button>
+
         <div id="error" class="error" hidden></div>
       </section>
 
@@ -90,6 +116,7 @@
           <div class="result-body">
             <div class="result-name">Изображение</div>
 
+            <!-- клик по этому блоку копирует ссылку -->
             <button id="copyLink" class="link-btn" type="button" title="Нажмите, чтобы скопировать ссылку">
               <span id="resultUrl" class="link-text"></span>
               <span class="copy-badge">копировать</span>
@@ -104,6 +131,7 @@
     <div id="toast" class="toast" hidden>Скопировано</div>
   </div>
 
-  <script src="./app.js"></script>
+  <!-- ВАЖНО: абсолютный путь -->
+  <script src="/app.js"></script>
 </body>
 </html>
