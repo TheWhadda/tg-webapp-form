@@ -13,14 +13,14 @@
     rel="stylesheet"
   />
 
-  <link rel="stylesheet" href="/styles.css?v=12" />
+  <link rel="stylesheet" href="/styles.css?v=13" />
 </head>
 <body>
   <div class="app">
     <header class="header">
       <h1 class="app-title">Генератор изображений</h1>
       <div class="app-subtitle">Tochka Bank</div>
-      <div id="jsStatus" style="margin-top:10px;font-size:12px;color:rgba(255,255,255,.6);"></div>
+      <!-- JS loaded убрали -->
     </header>
 
     <main class="card">
@@ -88,16 +88,14 @@
       </section>
 
       <section class="result">
-        <div class="result-title">Результат</div>
+        <!-- ✅ скрыто до результата -->
+        <div id="resultTitle" class="result-title" hidden>Результат</div>
 
-        <!-- ✅ СРАЗУ hidden -->
         <div id="resultCard" class="result-card" hidden>
           <img id="thumb" class="thumb" alt="Превью изображения" hidden />
 
           <div class="result-body">
             <div class="result-name">Изображение</div>
-
-            <!-- URL НЕ показываем, только копирование -->
             <button id="copyLink" class="link-btn" type="button" title="Нажмите, чтобы скопировать ссылку">
               <span class="copy-badge">копировать ссылку</span>
             </button>
@@ -111,6 +109,6 @@
     <div id="toast" class="toast" hidden>Скопировано</div>
   </div>
 
-  <script src="/app.js?v=12"></script>
+  <script src="/app.js?v=13"></script>
 </body>
 </html>
