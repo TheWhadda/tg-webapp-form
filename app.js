@@ -42,7 +42,7 @@ async function copyToClipboard(text) {
     await navigator.clipboard.writeText(text);
     return true;
   } catch (_) {
-    // fallback
+    // fallback для некоторых WebView
     try {
       const ta = document.createElement("textarea");
       ta.value = text;
@@ -60,26 +60,21 @@ async function copyToClipboard(text) {
 }
 
 /**
- * Рендер результата:
- * - заголовок без "600x600"
+ * Результат:
+ * - заголовок без размера
  * - миниатюра
- * - ссылка кликабельна и копирует URL
- * - кнопка "Открыть" открывает URL
+ * - клик по ссылке копирует
+ * - "Открыть" открывает URL
  */
 function renderResult(url) {
   resultCard.hidden = false;
 
-  // миниатюра (как есть)
   thumbEl.src = url;
-
-  // ссылка в тексте (коротко отображаем, копируем полный)
   resultUrlEl.textContent = url;
 
-  // кнопки
   copyLinkBtn.onclick = async () => {
     const ok = await copyToClipboard(url);
-    if (ok) showToast("Скопировано");
-    else showToast("Не удалось скопировать");
+    showToast(ok ? "Скопировано" : "Не удалось скопировать");
   };
 
   openLinkBtn.onclick = () => {
@@ -88,35 +83,39 @@ function renderResult(url) {
 }
 
 /**
- * Тут подключи свой реальный API.
- * Сейчас — заглушка, чтобы было понятно, куда вставлять.
+ * Подключи здесь свой реальный endpoint.
+ * Я оставил понятную заготовку.
  */
 async function generateImage() {
   const payload = {
     topic: topicEl.value.trim(),
     title: titleEl.value.trim(),
     subtitle: subtitleEl.value.trim(),
-    size: getSelectedSize()
+    size: getSelectedSize(),
   };
 
   if (!payload.topic) throw new Error("Заполните поле «Тема».");
   if (!payload.title) throw new Error("Заполните поле «Заголовок».");
   if (!payload.subtitle) throw new Error("Заполните поле «Подзаголовок».");
 
-  // --- ВАЖНО: заменить на реальный вызов ---
-  // Пример ожидаемого ответа:
-  // { ok: true, result: { images: [{ size: "600x600", url: "https://..." }] } }
+  // TODO: заменить на твой реальный запрос
+  // Пример:
+  // const r = await fetch("https://YOUR_DOMAIN/webhook/...", {
+  //   method: "POST",
+  //   headers: { "Content-Type": "application/json" },
+  //   body: JSON.stringify(payload),
+  // });
+  // const resp = await r.json();
+  // return resp;
 
-  // return fetch("YOUR_ENDPOINT", { method:"POST", headers:{...}, body: JSON.stringify(payload) }).then(r=>r.json());
-
-  // Заглушка:
+  // Заглушка для проверки UI:
   return {
     ok: true,
     result: {
       images: [
-        { size: payload.size, url: "https://res.cloudinary.com/demo/image/upload/sample.jpg" }
-      ]
-    }
+        { size: payload.size, url: "https://res.cloudinary.com/demo/image/upload/sample.jpg" },
+      ],
+    },
   };
 }
 
@@ -130,7 +129,6 @@ submitBtn.addEventListener("click", async () => {
       throw new Error(resp?.error || "Не удалось получить результат.");
     }
 
-    // Берём первую картинку (теперь размер один, radio)
     const url = resp.result?.images?.[0]?.url;
     if (!url) throw new Error("В ответе нет url изображения.");
 
@@ -142,13 +140,11 @@ submitBtn.addEventListener("click", async () => {
   }
 });
 
-// Кнопки перегенерации (пока заглушки — подключишь к своей логике)
+// Кнопки перегенерации — подключи к своей логике (если уже есть, просто замени обработчики)
 $("#regenTitle").addEventListener("click", () => {
-  // сюда твой генератор заголовка
-  showToast("Перегенерация заголовка (подключи логику)");
+  showToast("Перегенерация заголовка: подключи логику");
 });
 
 $("#regenSubtitle").addEventListener("click", () => {
-  // сюда твой генератор подзаголовка
-  showToast("Перегенерация подзаголовка (подключи логику)");
+  showToast("Перегенерация подзаголовка: подключи логику");
 });
