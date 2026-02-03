@@ -1,13 +1,11 @@
 :root {
   --bg: #0f1720;
   --card: #1b1f24;
-  --card2: #20252b;
   --text: #ffffff;
   --muted: rgba(255,255,255,.6);
   --muted2: rgba(255,255,255,.45);
   --stroke: rgba(255,255,255,.10);
   --accent: #7a3ff0;
-  --accent2: rgba(122,63,240,.22);
   --danger: #ff4d4d;
   --radius: 18px;
 }
@@ -47,8 +45,9 @@ html, body {
 }
 
 .card {
-  background: radial-gradient(1000px 400px at 20% -10%, rgba(122,63,240,.25), transparent 60%),
-              linear-gradient(180deg, var(--card), #161a1f);
+  background:
+    radial-gradient(1000px 400px at 20% -10%, rgba(122,63,240,.25), transparent 60%),
+    linear-gradient(180deg, var(--card), #161a1f);
   border: 1px solid var(--stroke);
   border-radius: 22px;
   padding: 16px;
@@ -93,7 +92,6 @@ html, body {
 }
 
 .input-row {
-  position: relative;
   display: grid;
   grid-template-columns: 1fr 44px;
   gap: 10px;
@@ -192,7 +190,6 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  position: relative;
 }
 
 .btn-primary:disabled {
