@@ -1,13 +1,5 @@
-/* =========================
-   CONFIG
-   ========================= */
-
-const AI_ENDPOINT = "/api/ai";                 // Vercel proxy -> n8n
-const SUBMIT_ENDPOINT = "/api/create_submit";  // генерация картинки
-
-/* =========================
-   DOM
-   ========================= */
+const AI_ENDPOINT = "/api/ai";
+const SUBMIT_ENDPOINT = "/api/create_submit";
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -19,8 +11,6 @@ const regenTitleBtn = $("#regenTitle");
 const regenSubtitleBtn = $("#regenSubtitle");
 
 const submitBtn = $("#submit");
-const submitBtnText = submitBtn?.querySelector(".btn-text");
-
 const errorBox = $("#error");
 
 const resultCard = $("#resultCard");
@@ -32,10 +22,6 @@ const openLinkBtn = $("#openLink");
 const toastEl = $("#toast");
 const jsStatusEl = $("#jsStatus");
 
-/* =========================
-   STATE
-   ========================= */
-
 let titleTouched = false;
 let subtitleTouched = false;
 let lastTopic = "";
@@ -43,15 +29,18 @@ let lastTopic = "";
 let aiAbort = null;
 let submitAbort = null;
 
-let titleLoading = false;
-let subtitleLoading = false;
-
-/* =========================
-   UI helpers
-   ========================= */
-
 function setStatus(text) {
   if (jsStatusEl) jsStatusEl.textContent = text || "";
+}
+
+function setSubmitLoading(isLoading) {
+  submitBtn.disabled = !!isLoading;
+  submitBtn.classList.toggle("loading", !!isLoading);
+}
+
+function setIconLoading(btn, isLoading) {
+  btn.classList.toggle("loading", !!isLoading);
+  btn.disabled = !!isLoading;
 }
 
 function showError(msg) {
@@ -67,18 +56,12 @@ function showToast(text = "Скопировано") {
 }
 
 function hideResult() {
-  if (!resultCard) return;
-
   resultCard.hidden = true;
-
-  if (thumbEl) {
-    thumbEl.hidden = true;
-    thumbEl.removeAttribute("src");
-  }
-
-  if (resultUrlEl) resultUrlEl.textContent = "";
-  if (copyLinkBtn) copyLinkBtn.onclick = null;
-  if (openLinkBtn) openLinkBtn.onclick = null;
+  thumbEl.hidden = true;
+  thumbEl.removeAttribute("src");
+  resultUrlEl.textContent = "";
+  copyLinkBtn.onclick = null;
+  openLinkBtn.onclick = null;
 }
 
 async function copyToClipboard(text) {
@@ -102,11 +85,13 @@ async function copyToClipboard(text) {
   }
 }
 
+function getSelectedSize() {
+  const checked = document.querySelector('input[name="size"]:checked');
+  return checked ? checked.value : "600x600";
+}
+
 function renderResult(url) {
-  if (!url) return;
-
   resultCard.hidden = false;
-
   thumbEl.hidden = false;
   thumbEl.src = url;
 
@@ -120,89 +105,13 @@ function renderResult(url) {
   openLinkBtn.onclick = () => window.open(url, "_blank", "noopener,noreferrer");
 }
 
-/* =========================
-   Button loaders (↻)
-   ========================= */
-
-function ensureMiniSpinner(btn) {
-  if (!btn) return null;
-  let sp = btn.querySelector(".mini-spin");
-  if (sp) return sp;
-
-  sp = document.createElement("span");
-  sp.className = "mini-spin";
-  sp.style.width = "16px";
-  sp.style.height = "16px";
-  sp.style.borderRadius = "999px";
-  sp.style.border = "2px solid rgba(255,255,255,.55)";
-  sp.style.borderTopColor = "rgba(255,255,255,0)";
-  sp.style.display = "none";
-  sp.style.animation = "miniSpin .75s linear infinite";
-
-  // добавим keyframes один раз
-  if (!document.getElementById("miniSpinStyle")) {
-    const st = document.createElement("style");
-    st.id = "miniSpinStyle";
-    st.textContent = `
-      @keyframes miniSpin { to { transform: rotate(360deg); } }
-      .icon-btn.loading { pointer-events: none; opacity: .85; }
-      .icon-btn.loading .mini-spin { display: inline-block; }
-      .icon-btn.loading .btn-icon { display: none; }
-    `;
-    document.head.appendChild(st);
-  }
-
-  // завернём текущий контент кнопки в span.btn-icon, чтобы прятать его
-  if (!btn.querySelector(".btn-icon")) {
-    const wrap = document.createElement("span");
-    wrap.className = "btn-icon";
-    wrap.textContent = btn.textContent;
-    btn.textContent = "";
-    btn.appendChild(wrap);
-    btn.appendChild(sp);
-  } else {
-    btn.appendChild(sp);
-  }
-
-  return sp;
-}
-
-function setIconBtnLoading(btn, isLoading) {
-  ensureMiniSpinner(btn);
-  btn.classList.toggle("loading", !!isLoading);
-}
-
-/* =========================
-   Main loader (Вжух)
-   ========================= */
-
-function setSubmitLoading(isLoading) {
-  if (!submitBtn) return;
-  submitBtn.disabled = !!isLoading;
-  submitBtn.classList.toggle("loading", !!isLoading);
-
-  // если хочешь менять текст — можно, но оставляем как было
-  if (submitBtnText) submitBtnText.textContent = "Вжух";
-}
-
-/* =========================
-   Context builder (ВАЖНО)
-   ========================= */
-
-/**
- * Требование: context = только содержимое title и subtitle, без префиксов.
- * Формат: "<title>\n\n<subtitle>" и аккуратно убираем лишние пустоты.
- */
 function buildContext() {
-  const t = (titleEl?.value || "").trim();
-  const s = (subtitleEl?.value || "").trim();
+  // only values, nothing else
+  const t = (titleEl.value || "").trim();
+  const s = (subtitleEl.value || "").trim();
   if (t && s) return `${t}\n\n${s}`;
   return t || s || "";
 }
-
-/* =========================
-   Networking
-   ========================= */
 
 async function postJson(url, body, signal) {
   const r = await fetch(url, {
@@ -224,10 +133,6 @@ async function postJson(url, body, signal) {
   return data ?? text;
 }
 
-/**
- * Поддержка твоего формата:
- * { ok:true, fields:{ title/subtitle:"..." } }
- */
 function extractText(resp, key) {
   if (typeof resp === "string") return resp.trim();
 
@@ -246,14 +151,9 @@ function extractText(resp, key) {
   return null;
 }
 
-/* =========================
-   AI: topic -> title -> subtitle
-   ========================= */
-
 function canOverwriteTitle() {
   return !titleTouched && !titleEl.value.trim();
 }
-
 function canOverwriteSubtitle() {
   return !subtitleTouched && !subtitleEl.value.trim();
 }
@@ -262,37 +162,26 @@ async function generateTitle(topic, { force = false } = {}) {
   if (!topic) return null;
   if (!force && !canOverwriteTitle()) return null;
 
-  if (titleLoading) return null;
-  titleLoading = true;
-
   if (aiAbort) aiAbort.abort();
   aiAbort = new AbortController();
 
-  setIconBtnLoading(regenTitleBtn, true);
+  setIconLoading(regenTitleBtn, true);
   setStatus("AI: заголовок…");
 
   try {
     const resp = await postJson(
       AI_ENDPOINT,
-      {
-        action: "title",
-        topic,
-        context: buildContext(), // ✅ только значения, без префиксов
-      },
+      { action: "title", topic, context: buildContext() },
       aiAbort.signal
     );
 
-    const title = extractText(resp, "title");
-    if (!title) throw new Error("AI ответил, но title не найден (ожидаю fields.title).");
+    const t = extractText(resp, "title");
+    if (!t) throw new Error("AI ответил, но title не найден (fields.title).");
 
-    if (force || canOverwriteTitle()) {
-      titleEl.value = title;
-    }
-
-    return title;
+    if (force || canOverwriteTitle()) titleEl.value = t;
+    return t;
   } finally {
-    titleLoading = false;
-    setIconBtnLoading(regenTitleBtn, false);
+    setIconLoading(regenTitleBtn, false);
   }
 }
 
@@ -300,45 +189,32 @@ async function generateSubtitle(topic, title, { force = false } = {}) {
   if (!topic) return null;
   if (!force && !canOverwriteSubtitle()) return null;
 
-  if (subtitleLoading) return null;
-  subtitleLoading = true;
-
   if (aiAbort) aiAbort.abort();
   aiAbort = new AbortController();
 
-  setIconBtnLoading(regenSubtitleBtn, true);
+  setIconLoading(regenSubtitleBtn, true);
   setStatus("AI: подзаголовок…");
 
   try {
     const resp = await postJson(
       AI_ENDPOINT,
-      {
-        action: "subtitle",
-        topic,
-        title,
-        context: buildContext(), // ✅ только значения, без префиксов
-      },
+      { action: "subtitle", topic, title, context: buildContext() },
       aiAbort.signal
     );
 
-    const subtitle = extractText(resp, "subtitle");
-    if (!subtitle) throw new Error("AI ответил, но subtitle не найден (ожидаю fields.subtitle).");
+    const s = extractText(resp, "subtitle");
+    if (!s) throw new Error("AI ответил, но subtitle не найден (fields.subtitle).");
 
-    if (force || canOverwriteSubtitle()) {
-      subtitleEl.value = subtitle;
-    }
-
-    return subtitle;
+    if (force || canOverwriteSubtitle()) subtitleEl.value = s;
+    return s;
   } finally {
-    subtitleLoading = false;
-    setIconBtnLoading(regenSubtitleBtn, false);
+    setIconLoading(regenSubtitleBtn, false);
   }
 }
 
 async function autoGenerateFromTopic() {
   const topic = topicEl.value.trim();
   if (!topic) return;
-
   if (topic === lastTopic) return;
   lastTopic = topic;
 
@@ -356,10 +232,6 @@ async function autoGenerateFromTopic() {
     showError(e?.message || "Ошибка AI");
   }
 }
-
-/* =========================
-   Submit (картинка)
-   ========================= */
 
 async function submitGenerate() {
   const payload = {
@@ -380,9 +252,7 @@ async function submitGenerate() {
 
   const resp = await postJson(SUBMIT_ENDPOINT, payload, submitAbort.signal);
 
-  if (!resp?.ok) {
-    throw new Error(resp?.error || resp?.message || "Не удалось получить результат.");
-  }
+  if (!resp?.ok) throw new Error(resp?.error || resp?.message || "Не удалось получить результат.");
 
   const url = resp?.result?.images?.[0]?.url;
   if (!url) throw new Error("В ответе нет url изображения.");
@@ -390,18 +260,14 @@ async function submitGenerate() {
   return url;
 }
 
-/* =========================
-   Events
-   ========================= */
+/* ========= init ========= */
 
 setStatus("JS: loaded ✅");
 hideResult();
 
-// помечаем ручное редактирование
 titleEl.addEventListener("input", () => { titleTouched = true; });
 subtitleEl.addEventListener("input", () => { subtitleTouched = true; });
 
-// автогенерация после темы
 topicEl.addEventListener("blur", autoGenerateFromTopic);
 topicEl.addEventListener("change", autoGenerateFromTopic);
 topicEl.addEventListener("keydown", (e) => {
@@ -412,7 +278,6 @@ topicEl.addEventListener("keydown", (e) => {
   }
 });
 
-// ↻ заголовок
 regenTitleBtn.addEventListener("click", async () => {
   const topic = topicEl.value.trim();
   if (!topic) return showError("Сначала заполните «Тема».");
@@ -429,7 +294,6 @@ regenTitleBtn.addEventListener("click", async () => {
   }
 });
 
-// ↻ подзаголовок
 regenSubtitleBtn.addEventListener("click", async () => {
   const topic = topicEl.value.trim();
   if (!topic) return showError("Сначала заполните «Тема».");
@@ -445,15 +309,14 @@ regenSubtitleBtn.addEventListener("click", async () => {
   }
 });
 
-// Вжух: лоадер + результат только после ответа
 submitBtn.addEventListener("click", async () => {
   showError("");
-  hideResult();            // ✅ скрываем сразу
-  setSubmitLoading(true);  // ✅ лоадер в кнопке
+  hideResult();               // ✅ скрываем
+  setSubmitLoading(true);     // ✅ лоадер на кнопке
 
   try {
     const url = await submitGenerate();
-    renderResult(url);     // ✅ показываем только после успеха
+    renderResult(url);        // ✅ показываем после ответа
     setStatus("");
   } catch (e) {
     setStatus("");
