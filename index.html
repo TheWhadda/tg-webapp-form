@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
+  <base href="./" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TochkaBankGen</title>
 
@@ -12,14 +13,17 @@
     rel="stylesheet"
   />
 
-  <!-- ВАЖНО: абсолютный путь -->
-  <link rel="stylesheet" href="/style.css" />
+  <!-- cache-busting -->
+  <link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
   <div class="app">
     <header class="header">
       <h1 class="app-title">Генератор изображений</h1>
       <div class="app-subtitle">Tochka Bank</div>
+
+      <!-- Диагностика CSS -->
+      <div id="cssStatus" class="css-status" hidden></div>
     </header>
 
     <main class="card">
@@ -116,7 +120,6 @@
           <div class="result-body">
             <div class="result-name">Изображение</div>
 
-            <!-- клик по этому блоку копирует ссылку -->
             <button id="copyLink" class="link-btn" type="button" title="Нажмите, чтобы скопировать ссылку">
               <span id="resultUrl" class="link-text"></span>
               <span class="copy-badge">копировать</span>
@@ -131,7 +134,7 @@
     <div id="toast" class="toast" hidden>Скопировано</div>
   </div>
 
-  <!-- ВАЖНО: абсолютный путь -->
-  <script src="/app.js"></script>
+  <!-- cache-busting -->
+  <script src="app.js?v=3"></script>
 </body>
 </html>
