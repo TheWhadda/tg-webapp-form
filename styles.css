@@ -103,7 +103,7 @@ html, body {
 }
 
 /* =========================
-   ICON BUTTON (↻) + LOADER (FIXED)
+   ICON BUTTON (↻) + LOADER (BULLETPROOF)
    ========================= */
 
 .icon-btn {
@@ -124,7 +124,7 @@ html, body {
 .icon-btn:active { transform: translateY(1px); }
 .icon-btn:hover { background: rgba(122,63,240,.22); }
 
-/* спиннер всегда в центре и не "едет" */
+/* спиннер */
 .icon-btn::after {
   content: "";
   position: absolute;
@@ -143,18 +143,19 @@ html, body {
   pointer-events: none;
 }
 
-.icon-btn.loading {
+/* включение лоадера — И по классу, И по aria-busy */
+.icon-btn.loading,
+.icon-btn[aria-busy="true"] {
   pointer-events: none;
   opacity: .95;
+  color: rgba(233,221,255,0); /* прячем ↻ */
 }
 
-/* прячем ↻, но НЕ делаем color transparent (это ломает рендер в телеге) */
-.icon-btn.loading span,
-.icon-btn.loading {
-  /* у кнопки нет span — поэтому просто делаем саму кнопку "пустой" визуально через opacity текста */
+.icon-btn.loading::after,
+.icon-btn[aria-busy="true"]::after {
+  opacity: 1;
 }
-.icon-btn.loading { color: rgba(233,221,255,0); }
-.icon-btn.loading::after { opacity: 1; }
+
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
