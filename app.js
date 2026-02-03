@@ -2,8 +2,8 @@
    CONFIG
    ========================= */
 
-const AI_ENDPOINT = "/api/ai";              // прокси на n8n
-const SUBMIT_ENDPOINT = "/api/create_submit"; // твой текущий submit
+const AI_ENDPOINT = "/api/ai";                 // прокси на n8n
+const SUBMIT_ENDPOINT = "/api/create_submit";  // твой submit
 
 /* =========================
    DOM
@@ -67,15 +67,18 @@ function showToast(text = "Скопировано") {
 }
 
 function hideResult() {
+  if (!resultCard) return;
+
   resultCard.hidden = true;
 
-  // прячем миниатюру, чтобы не было "битой" иконки
-  thumbEl.hidden = true;
-  thumbEl.removeAttribute("src");
+  if (thumbEl) {
+    thumbEl.hidden = true;
+    thumbEl.removeAttribute("src");
+  }
 
-  resultUrlEl.textContent = "";
-  copyLinkBtn.onclick = null;
-  openLinkBtn.onclick = null;
+  if (resultUrlEl) resultUrlEl.textContent = "";
+  if (copyLinkBtn) copyLinkBtn.onclick = null;
+  if (openLinkBtn) openLinkBtn.onclick = null;
 }
 
 async function copyToClipboard(text) {
@@ -105,6 +108,8 @@ function getSelectedSize() {
 }
 
 function renderResult(url) {
+  if (!url) return;
+
   resultCard.hidden = false;
 
   thumbEl.hidden = false;
@@ -144,21 +149,36 @@ async function postJson(url, body, signal) {
   return data ?? text;
 }
 
+function looksLikeTemplate(s) {
+  // на случай если внезапно придёт "{{ ... }}"
+  return typeof s === "string" && s.includes("{{") && s.includes("}}");
+}
+
+/**
+ * УСТОЙЧИВЫЙ extract:
+ * - поддерживает твой новый формат { ok:true, fields:{ title } }
+ */
 function extractText(resp, key) {
   if (typeof resp === "string") return resp.trim();
 
   const candidates = [
-    resp?.[key],
+    resp?.[key],                 // title
+    resp?.fields?.[key],          // fields.title  ✅ ВОТ ЭТО ТЕБЕ НУЖНО
     resp?.result?.[key],
     resp?.data?.[key],
     resp?.output?.[key],
     resp?.text,
     resp?.result?.text,
     resp?.data?.text,
+    resp?.fields?.text,
   ];
 
   for (const c of candidates) {
-    if (typeof c === "string" && c.trim()) return c.trim();
+    if (typeof c === "string" && c.trim()) {
+      const t = c.trim();
+      if (looksLikeTemplate(t)) return null; // не подставляем шаблоны
+      return t;
+    }
   }
   return null;
 }
@@ -182,7 +202,7 @@ async function generateTitle(topic, { force = false } = {}) {
   if (aiAbort) aiAbort.abort();
   aiAbort = new AbortController();
 
-  setStatus("AI: генерю заголовок…");
+  setStatus("AI: заголовок…");
 
   const resp = await postJson(
     AI_ENDPOINT,
@@ -190,12 +210,16 @@ async function generateTitle(topic, { force = false } = {}) {
     aiAbort.signal
   );
 
-  const title = extractText(resp, "title") || extractText(resp, "text");
-  if (title && (force || canOverwriteTitle())) {
+  const title = extractText(resp, "title");
+  if (!title) {
+    throw new Error("AI вернул ответ, но я не нашёл title (ожидаю title или fields.title).");
+  }
+
+  if (force || canOverwriteTitle()) {
     titleEl.value = title;
   }
 
-  return title || null;
+  return title;
 }
 
 async function generateSubtitle(topic, title, { force = false } = {}) {
@@ -205,7 +229,7 @@ async function generateSubtitle(topic, title, { force = false } = {}) {
   if (aiAbort) aiAbort.abort();
   aiAbort = new AbortController();
 
-  setStatus("AI: генерю подзаголовок…");
+  setStatus("AI: подзаголовок…");
 
   const resp = await postJson(
     AI_ENDPOINT,
@@ -213,12 +237,16 @@ async function generateSubtitle(topic, title, { force = false } = {}) {
     aiAbort.signal
   );
 
-  const subtitle = extractText(resp, "subtitle") || extractText(resp, "text");
-  if (subtitle && (force || canOverwriteSubtitle())) {
+  const subtitle = extractText(resp, "subtitle");
+  if (!subtitle) {
+    throw new Error("AI вернул ответ, но я не нашёл subtitle (ожидаю subtitle или fields.subtitle).");
+  }
+
+  if (force || canOverwriteSubtitle()) {
     subtitleEl.value = subtitle;
   }
 
-  return subtitle || null;
+  return subtitle;
 }
 
 async function autoGenerateFromTopic() {
@@ -232,9 +260,8 @@ async function autoGenerateFromTopic() {
 
   try {
     const t = await generateTitle(topic, { force: false });
-    const finalTitle = t || titleEl.value.trim();
-    await generateSubtitle(topic, finalTitle, { force: false });
-    setStatus("AI: готово");
+    await generateSubtitle(topic, t, { force: false });
+    setStatus("AI: готово ✅");
     setTimeout(() => setStatus(""), 700);
   } catch (e) {
     setStatus("");
@@ -301,8 +328,8 @@ regenTitleBtn.addEventListener("click", async () => {
 
   showError("");
   try {
-    await generateTitle(topic, { force: true });
-    await generateSubtitle(topic, titleEl.value.trim(), { force: false });
+    const t = await generateTitle(topic, { force: true });
+    await generateSubtitle(topic, t, { force: false });
     showToast("Заголовок обновлён");
     setStatus("");
   } catch (e) {
@@ -328,12 +355,12 @@ regenSubtitleBtn.addEventListener("click", async () => {
 
 submitBtn.addEventListener("click", async () => {
   showError("");
-  hideResult();        // ✅ прячем сразу
+  hideResult();       // ✅ результат только после ответа
   setLoading(true);
 
   try {
     const url = await submitGenerate();
-    renderResult(url); // ✅ показываем только после ответа
+    renderResult(url);
     setStatus("");
   } catch (e) {
     setStatus("");
