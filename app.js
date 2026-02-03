@@ -15,7 +15,6 @@ const errorBox = $("#error");
 
 const resultCard = $("#resultCard");
 const thumbEl = $("#thumb");
-const resultUrlEl = $("#resultUrl");
 const copyLinkBtn = $("#copyLink");
 const openLinkBtn = $("#openLink");
 
@@ -28,6 +27,8 @@ let lastTopic = "";
 
 let aiAbort = null;
 let submitAbort = null;
+
+let lastImageUrl = "";
 
 function setStatus(text) {
   if (jsStatusEl) jsStatusEl.textContent = text || "";
@@ -56,10 +57,12 @@ function showToast(text = "Скопировано") {
 }
 
 function hideResult() {
+  lastImageUrl = "";
   resultCard.hidden = true;
+
   thumbEl.hidden = true;
   thumbEl.removeAttribute("src");
-  resultUrlEl.textContent = "";
+
   copyLinkBtn.onclick = null;
   openLinkBtn.onclick = null;
 }
@@ -86,18 +89,20 @@ async function copyToClipboard(text) {
 }
 
 function renderResult(url) {
-  resultCard.hidden = false;
-  thumbEl.hidden = false;
-  thumbEl.src = url;
+  lastImageUrl = url || "";
+  if (!lastImageUrl) return;
 
-  resultUrlEl.textContent = url;
+  resultCard.hidden = false;
+
+  thumbEl.hidden = false;
+  thumbEl.src = lastImageUrl;
 
   copyLinkBtn.onclick = async () => {
-    const ok = await copyToClipboard(url);
-    showToast(ok ? "Скопировано" : "Не удалось скопировать");
+    const ok = await copyToClipboard(lastImageUrl);
+    showToast(ok ? "Ссылка скопирована" : "Не удалось скопировать");
   };
 
-  openLinkBtn.onclick = () => window.open(url, "_blank", "noopener,noreferrer");
+  openLinkBtn.onclick = () => window.open(lastImageUrl, "_blank", "noopener,noreferrer");
 }
 
 function buildContext() {
@@ -133,14 +138,7 @@ async function postJson(url, body, signal) {
 
 function extractText(resp, key) {
   if (typeof resp === "string") return resp.trim();
-  const cands = [
-    resp?.[key],
-    resp?.fields?.[key],
-    resp?.result?.[key],
-    resp?.data?.[key],
-    resp?.text,
-    resp?.fields?.text,
-  ];
+  const cands = [resp?.[key], resp?.fields?.[key], resp?.text];
   for (const c of cands) {
     if (typeof c === "string" && c.trim()) return c.trim();
   }
@@ -258,11 +256,15 @@ async function submitGenerate() {
 
 /* init */
 setStatus("JS: loaded ✅");
+
+// ✅ прячем сразу, до любых запросов
 hideResult();
 
+// marks
 titleEl.addEventListener("input", () => { titleTouched = true; });
 subtitleEl.addEventListener("input", () => { subtitleTouched = true; });
 
+// auto from topic
 topicEl.addEventListener("blur", autoGenerateFromTopic);
 topicEl.addEventListener("change", autoGenerateFromTopic);
 topicEl.addEventListener("keydown", (e) => {
@@ -273,6 +275,7 @@ topicEl.addEventListener("keydown", (e) => {
   }
 });
 
+// buttons
 regenTitleBtn.addEventListener("click", async () => {
   const topic = topicEl.value.trim();
   if (!topic) return showError("Сначала заполните «Тема».");
@@ -306,12 +309,12 @@ regenSubtitleBtn.addEventListener("click", async () => {
 
 submitBtn.addEventListener("click", async () => {
   showError("");
-  hideResult();
+  hideResult();            // ✅ скрываем до ответа
   setSubmitLoading(true);
 
   try {
     const url = await submitGenerate();
-    renderResult(url);
+    renderResult(url);     // ✅ показываем после ответа
     setStatus("");
   } catch (e) {
     setStatus("");
