@@ -1,14 +1,10 @@
 :root {
   --bg: #0f1720;
   --card: #1b1f24;
-  --card2: #20252b;
   --text: #ffffff;
-  --muted: rgba(255,255,255,.6);
   --muted2: rgba(255,255,255,.45);
   --stroke: rgba(255,255,255,.10);
   --accent: #7a3ff0;
-  --accent2: rgba(122,63,240,.22);
-  --danger: #ff4d4d;
   --radius: 18px;
 }
 
@@ -28,9 +24,7 @@ html, body {
   padding: 18px 14px 28px;
 }
 
-.header {
-  padding: 6px 4px 14px;
-}
+.header { padding: 6px 4px 14px; }
 
 .app-title {
   margin: 0;
@@ -70,10 +64,6 @@ html, body {
   color: var(--muted2);
 }
 
-/* =========================================================
-   INPUTS: делаем всем инпутам одинаковый шрифт/вес (600)
-   ========================================================= */
-
 .input,
 .textarea {
   width: 100%;
@@ -84,8 +74,6 @@ html, body {
   padding: 12px 14px;
   outline: none;
   font-size: 14px;
-
-  /* ВАЖНО: единый шрифт и вес как у заголовка/подзаголовка */
   font-family: "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   font-weight: 600;
 }
@@ -93,19 +81,11 @@ html, body {
 .textarea {
   resize: none;
   line-height: 1.35;
-  padding-right: 54px; /* место под кнопку */
+  padding-right: 54px;
 }
 
-/* placeholder тоже делаем аккуратным и единым */
 .input::placeholder,
 .textarea::placeholder {
-  color: rgba(255,255,255,.40);
-  font-weight: 600;
-}
-
-/* для WebKit (Telegram iOS/Android может капризничать) */
-.input::-webkit-input-placeholder,
-.textarea::-webkit-input-placeholder {
   color: rgba(255,255,255,.40);
   font-weight: 600;
 }
@@ -116,12 +96,15 @@ html, body {
 }
 
 .input-row {
-  position: relative;
   display: grid;
   grid-template-columns: 1fr 44px;
   gap: 10px;
   align-items: start;
 }
+
+/* =========================
+   ICON BUTTON (↻) + LOADER
+   ========================= */
 
 .icon-btn {
   height: 44px;
@@ -134,28 +117,47 @@ html, body {
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: transform .08s ease, background .12s ease;
+  position: relative;
+  transition: transform .08s ease, background .12s ease, opacity .12s ease;
 }
 
 .icon-btn:active { transform: translateY(1px); }
 .icon-btn:hover { background: rgba(122,63,240,.22); }
 
-.sizes {
-  display: grid;
-  gap: 10px;
+/* крутилка (по умолчанию скрыта) */
+.icon-btn::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,.55);
+  border-top-color: rgba(255,255,255,0);
+  display: none;
+  animation: spin .75s linear infinite;
 }
 
-.size-item {
-  display: block;
-  cursor: pointer;
-  user-select: none;
-}
-
-.size-item input {
-  position: absolute;
-  opacity: 0;
+/* когда loading — прячем символ ↻ и показываем крутилку */
+.icon-btn.loading {
   pointer-events: none;
+  opacity: .9;
 }
+
+.icon-btn.loading::after { display: block; }
+
+.icon-btn.loading {
+  color: transparent; /* ↻ исчезает, кнопка остаётся красивой */
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* =========================
+   Sizes
+   ========================= */
+
+.sizes { display: grid; gap: 10px; }
+
+.size-item { display: block; cursor: pointer; user-select: none; }
+.size-item input { position: absolute; opacity: 0; pointer-events: none; }
 
 .size-ui {
   display: flex;
@@ -165,13 +167,9 @@ html, body {
   border-radius: var(--radius);
   border: 1px solid var(--stroke);
   background: rgba(255,255,255,.04);
-  transition: border-color .12s ease, background .12s ease;
 }
 
-.size-text {
-  font-size: 14px;
-  font-weight: 600;
-}
+.size-text { font-size: 14px; font-weight: 600; }
 
 .radio-dot {
   width: 18px;
@@ -187,10 +185,7 @@ html, body {
   background: rgba(122,63,240,.12);
 }
 
-.size-item input:checked + .size-ui .radio-dot {
-  border-color: rgba(122,63,240,.9);
-}
-
+.size-item input:checked + .size-ui .radio-dot { border-color: rgba(122,63,240,.9); }
 .size-item input:checked + .size-ui .radio-dot::after {
   content: "";
   position: absolute;
@@ -200,6 +195,10 @@ html, body {
 }
 
 .actions { margin: 12px 0 6px; }
+
+/* =========================
+   Main button (Вжух) loader
+   ========================= */
 
 .btn-primary {
   width: 100%;
@@ -215,13 +214,9 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  position: relative;
 }
 
-.btn-primary:disabled {
-  opacity: .75;
-  cursor: not-allowed;
-}
+.btn-primary:disabled { opacity: .75; cursor: not-allowed; }
 
 .btn-primary .spinner {
   width: 18px;
@@ -234,10 +229,6 @@ html, body {
 }
 
 .btn-primary.loading .spinner { display: inline-block; }
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
 
 .error {
   margin-top: 10px;
@@ -329,8 +320,6 @@ html, body {
   font-weight: 800;
   cursor: pointer;
 }
-
-.btn-secondary:active { transform: translateY(1px); }
 
 .toast {
   position: fixed;
