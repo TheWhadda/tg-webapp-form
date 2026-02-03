@@ -16,6 +16,7 @@ const errorBox = $("#error");
 const resultTitleEl = $("#resultTitle");
 const resultCard = $("#resultCard");
 const thumbEl = $("#thumb");
+const resultNameEl = $("#resultName");
 const copyLinkBtn = $("#copyLink");
 const openLinkBtn = $("#openLink");
 
@@ -38,7 +39,6 @@ function setSubmitLoading(isLoading) {
 function setIconLoading(btn, isLoading) {
   btn.classList.toggle("loading", !!isLoading);
   btn.setAttribute("aria-busy", isLoading ? "true" : "false");
-  // НЕ ставим disabled для ↻
 }
 
 function showError(msg) {
@@ -61,6 +61,8 @@ function hideResult() {
 
   thumbEl.hidden = true;
   thumbEl.removeAttribute("src");
+
+  if (resultNameEl) resultNameEl.textContent = "";
 
   copyLinkBtn.onclick = null;
   openLinkBtn.onclick = null;
@@ -87,9 +89,12 @@ async function copyToClipboard(text) {
   }
 }
 
-function renderResult(url) {
+function renderResult(url, size) {
   lastImageUrl = url || "";
   if (!lastImageUrl) return;
+
+  // ✅ название = выбранный размер
+  if (resultNameEl) resultNameEl.textContent = size || "";
 
   resultTitleEl.hidden = false;
   resultCard.hidden = false;
@@ -223,11 +228,13 @@ async function autoGenerateFromTopic() {
 }
 
 async function submitGenerate() {
+  const size = getSelectedSize();
+
   const payload = {
     topic: topicEl.value.trim(),
     title: titleEl.value.trim(),
     subtitle: subtitleEl.value.trim(),
-    size: getSelectedSize(),
+    size,
   };
 
   if (!payload.topic) throw new Error("Заполните поле «Тема».");
@@ -244,7 +251,7 @@ async function submitGenerate() {
   const url = resp?.result?.images?.[0]?.url;
   if (!url) throw new Error("В ответе нет url изображения.");
 
-  return url;
+  return { url, size };
 }
 
 /* init */
@@ -296,8 +303,8 @@ submitBtn.addEventListener("click", async () => {
   setSubmitLoading(true);
 
   try {
-    const url = await submitGenerate();
-    renderResult(url);
+    const { url, size } = await submitGenerate();
+    renderResult(url, size);
   } catch (e) {
     showError(e?.message || "Ошибка");
   } finally {
