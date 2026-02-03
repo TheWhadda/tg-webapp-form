@@ -13,60 +13,39 @@
     rel="stylesheet"
   />
 
-  <!-- cache-busting -->
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="styles.css?v=9" />
 </head>
 <body>
   <div class="app">
     <header class="header">
       <h1 class="app-title">Генератор изображений</h1>
       <div class="app-subtitle">Tochka Bank</div>
-
-      <!-- Диагностика CSS -->
-      <div id="cssStatus" class="css-status" hidden></div>
+      <div id="jsStatus" style="margin-top:10px;font-size:12px;color:rgba(255,255,255,.6);"></div>
     </header>
 
     <main class="card">
       <section class="field">
         <label class="label" for="topic">Тема</label>
-        <input
-          id="topic"
-          class="input"
-          type="text"
-          placeholder="Например: Кредитная карта на 3% годовых"
-          autocomplete="off"
-        />
+        <input id="topic" class="input" type="text"
+          placeholder="Например: Кредитная карта на 3% годовых" autocomplete="off" />
         <div class="hint">Коротко: о чём изображение и для кого.</div>
       </section>
 
       <section class="field">
         <label class="label" for="title">Заголовок</label>
         <div class="input-row">
-          <input
-            id="title"
-            class="input"
-            type="text"
-            placeholder="Например: Кредитная карта с выгодной ставкой"
-            autocomplete="off"
-          />
-          <button id="regenTitle" class="icon-btn" type="button" aria-label="Перегенерировать заголовок">
-            ↻
-          </button>
+          <input id="title" class="input" type="text"
+            placeholder="Например: Кредитная карта с выгодной ставкой" autocomplete="off" />
+          <button id="regenTitle" class="icon-btn" type="button" aria-label="Перегенерировать заголовок">↻</button>
         </div>
       </section>
 
       <section class="field">
         <label class="label" for="subtitle">Подзаголовок</label>
         <div class="input-row">
-          <textarea
-            id="subtitle"
-            class="textarea"
-            rows="2"
-            placeholder="Например: Экономьте на процентах и управляйте расходами"
-          ></textarea>
-          <button id="regenSubtitle" class="icon-btn" type="button" aria-label="Перегенерировать подзаголовок">
-            ↻
-          </button>
+          <textarea id="subtitle" class="textarea" rows="2"
+            placeholder="Например: Экономьте на процентах и управляйте расходами"></textarea>
+          <button id="regenSubtitle" class="icon-btn" type="button" aria-label="Перегенерировать подзаголовок">↻</button>
         </div>
       </section>
 
@@ -115,7 +94,7 @@
         <div class="result-title">Результат</div>
 
         <div id="resultCard" class="result-card" hidden>
-          <img id="thumb" class="thumb" alt="Превью изображения" />
+          <img id="thumb" class="thumb" alt="Превью изображения" hidden />
 
           <div class="result-body">
             <div class="result-name">Изображение</div>
@@ -134,7 +113,6 @@
     <div id="toast" class="toast" hidden>Скопировано</div>
   </div>
 
-  <!-- cache-busting -->
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>
