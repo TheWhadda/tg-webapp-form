@@ -102,10 +102,7 @@ html, body {
   align-items: start;
 }
 
-/* =========================
-   ICON BUTTON (↻) + LOADER
-   ========================= */
-
+/* ICON BUTTON (↻) + LOADER */
 .icon-btn {
   height: 44px;
   width: 44px;
@@ -120,11 +117,9 @@ html, body {
   position: relative;
   transition: transform .08s ease, background .12s ease, opacity .12s ease;
 }
-
 .icon-btn:active { transform: translateY(1px); }
 .icon-btn:hover { background: rgba(122,63,240,.22); }
 
-/* крутилка (по умолчанию скрыта) */
 .icon-btn::after {
   content: "";
   width: 16px;
@@ -135,27 +130,17 @@ html, body {
   display: none;
   animation: spin .75s linear infinite;
 }
-
-/* когда loading — прячем символ ↻ и показываем крутилку */
 .icon-btn.loading {
   pointer-events: none;
   opacity: .9;
+  color: transparent;
 }
-
 .icon-btn.loading::after { display: block; }
-
-.icon-btn.loading {
-  color: transparent; /* ↻ исчезает, кнопка остаётся красивой */
-}
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* =========================
-   Sizes
-   ========================= */
-
+/* Sizes */
 .sizes { display: grid; gap: 10px; }
-
 .size-item { display: block; cursor: pointer; user-select: none; }
 .size-item input { position: absolute; opacity: 0; pointer-events: none; }
 
@@ -184,7 +169,6 @@ html, body {
   border-color: rgba(122,63,240,.55);
   background: rgba(122,63,240,.12);
 }
-
 .size-item input:checked + .size-ui .radio-dot { border-color: rgba(122,63,240,.9); }
 .size-item input:checked + .size-ui .radio-dot::after {
   content: "";
@@ -196,10 +180,7 @@ html, body {
 
 .actions { margin: 12px 0 6px; }
 
-/* =========================
-   Main button (Вжух) loader
-   ========================= */
-
+/* Main button (Вжух) loader */
 .btn-primary {
   width: 100%;
   height: 52px;
@@ -215,7 +196,6 @@ html, body {
   justify-content: center;
   gap: 10px;
 }
-
 .btn-primary:disabled { opacity: .75; cursor: not-allowed; }
 
 .btn-primary .spinner {
@@ -227,7 +207,6 @@ html, body {
   display: none;
   animation: spin .75s linear infinite;
 }
-
 .btn-primary.loading .spinner { display: inline-block; }
 
 .error {
@@ -248,6 +227,9 @@ html, body {
   margin: 12px 2px 10px;
   color: rgba(255,255,255,.82);
 }
+
+/* ✅ ЖЕЛЕЗНО: скрываем до генерации */
+.result-card[hidden] { display: none !important; }
 
 .result-card {
   display: grid;
@@ -278,36 +260,20 @@ html, body {
 }
 
 .link-btn {
-  width: 100%;
   border: 0;
   background: transparent;
   padding: 0;
-  text-align: left;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.link-text {
-  font-size: 12px;
-  color: rgba(255,255,255,.65);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
 }
 
 .copy-badge {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  padding: 3px 8px;
+  padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid rgba(122,63,240,.35);
   background: rgba(122,63,240,.14);
   color: #e9ddff;
-  flex: 0 0 auto;
 }
 
 .btn-secondary {
