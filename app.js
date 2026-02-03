@@ -36,8 +36,9 @@ function setSubmitLoading(isLoading) {
 }
 
 function setIconLoading(btn, isLoading) {
-  btn.disabled = !!isLoading;
+  // Важно: не используем disabled (в телеге оно может ломать стиль)
   btn.classList.toggle("loading", !!isLoading);
+  btn.setAttribute("aria-busy", isLoading ? "true" : "false");
 }
 
 function showError(msg) {
