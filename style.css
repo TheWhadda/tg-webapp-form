@@ -1,10 +1,14 @@
 :root {
   --bg: #0f1720;
   --card: #1b1f24;
+  --card2: #20252b;
   --text: #ffffff;
+  --muted: rgba(255,255,255,.6);
   --muted2: rgba(255,255,255,.45);
   --stroke: rgba(255,255,255,.10);
   --accent: #7a3ff0;
+  --accent2: rgba(122,63,240,.22);
+  --danger: #ff4d4d;
   --radius: 18px;
 }
 
@@ -24,7 +28,9 @@ html, body {
   padding: 18px 14px 28px;
 }
 
-.header { padding: 6px 4px 14px; }
+.header {
+  padding: 6px 4px 14px;
+}
 
 .app-title {
   margin: 0;
@@ -38,19 +44,6 @@ html, body {
   color: var(--muted2);
   font-size: 13px;
   font-weight: 500;
-}
-
-/* диагностика */
-.css-status{
-  margin-top: 10px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 77, 77, .28);
-  background: rgba(255, 77, 77, .12);
-  color: rgba(255, 220, 220, .95);
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.35;
 }
 
 .card {
@@ -77,7 +70,12 @@ html, body {
   color: var(--muted2);
 }
 
-.input, .textarea {
+/* =========================================================
+   INPUTS: делаем всем инпутам одинаковый шрифт/вес (600)
+   ========================================================= */
+
+.input,
+.textarea {
   width: 100%;
   border-radius: var(--radius);
   border: 1px solid var(--stroke);
@@ -86,15 +84,30 @@ html, body {
   padding: 12px 14px;
   outline: none;
   font-size: 14px;
-  font-weight: 500;
+
+  /* ВАЖНО: единый шрифт и вес как у заголовка/подзаголовка */
+  font-family: "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-weight: 600;
 }
 
 .textarea {
   resize: none;
   line-height: 1.35;
-  padding-right: 54px;
-  font-family: "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  font-weight: 500;
+  padding-right: 54px; /* место под кнопку */
+}
+
+/* placeholder тоже делаем аккуратным и единым */
+.input::placeholder,
+.textarea::placeholder {
+  color: rgba(255,255,255,.40);
+  font-weight: 600;
+}
+
+/* для WebKit (Telegram iOS/Android может капризничать) */
+.input::-webkit-input-placeholder,
+.textarea::-webkit-input-placeholder {
+  color: rgba(255,255,255,.40);
+  font-weight: 600;
 }
 
 .input:focus, .textarea:focus {
@@ -103,6 +116,7 @@ html, body {
 }
 
 .input-row {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 44px;
   gap: 10px;
@@ -120,13 +134,28 @@ html, body {
   cursor: pointer;
   display: grid;
   place-items: center;
+  transition: transform .08s ease, background .12s ease;
 }
 
-.sizes { display: grid; gap: 10px; }
+.icon-btn:active { transform: translateY(1px); }
+.icon-btn:hover { background: rgba(122,63,240,.22); }
 
-.size-item { display: block; cursor: pointer; user-select: none; }
+.sizes {
+  display: grid;
+  gap: 10px;
+}
 
-.size-item input { position: absolute; opacity: 0; pointer-events: none; }
+.size-item {
+  display: block;
+  cursor: pointer;
+  user-select: none;
+}
+
+.size-item input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
 
 .size-ui {
   display: flex;
@@ -136,9 +165,13 @@ html, body {
   border-radius: var(--radius);
   border: 1px solid var(--stroke);
   background: rgba(255,255,255,.04);
+  transition: border-color .12s ease, background .12s ease;
 }
 
-.size-text { font-size: 14px; font-weight: 600; }
+.size-text {
+  font-size: 14px;
+  font-weight: 600;
+}
 
 .radio-dot {
   width: 18px;
@@ -182,9 +215,13 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 10px;
+  position: relative;
 }
 
-.btn-primary:disabled { opacity: .75; cursor: not-allowed; }
+.btn-primary:disabled {
+  opacity: .75;
+  cursor: not-allowed;
+}
 
 .btn-primary .spinner {
   width: 18px;
@@ -198,7 +235,9 @@ html, body {
 
 .btn-primary.loading .spinner { display: inline-block; }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
 .error {
   margin-top: 10px;
@@ -241,7 +280,11 @@ html, body {
 
 .result-body { min-width: 0; }
 
-.result-name { font-size: 13px; font-weight: 800; margin-bottom: 6px; }
+.result-name {
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
 
 .link-btn {
   width: 100%;
@@ -286,6 +329,8 @@ html, body {
   font-weight: 800;
   cursor: pointer;
 }
+
+.btn-secondary:active { transform: translateY(1px); }
 
 .toast {
   position: fixed;
