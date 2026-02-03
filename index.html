@@ -13,7 +13,7 @@
     rel="stylesheet"
   />
 
-  <link rel="stylesheet" href="styles.css?v=9" />
+  <link rel="stylesheet" href="/styles.css?v=12" />
 </head>
 <body>
   <div class="app">
@@ -51,7 +51,6 @@
 
       <section class="field">
         <div class="label">Размеры</div>
-
         <div class="sizes">
           <label class="size-item">
             <input type="radio" name="size" value="600x600" checked />
@@ -77,7 +76,6 @@
             </span>
           </label>
         </div>
-
         <div class="hint">Можно выбрать только один размер.</div>
       </section>
 
@@ -86,22 +84,22 @@
           <span class="btn-text">Вжух</span>
           <span class="spinner" aria-hidden="true"></span>
         </button>
-
         <div id="error" class="error" hidden></div>
       </section>
 
       <section class="result">
         <div class="result-title">Результат</div>
 
+        <!-- ✅ СРАЗУ hidden -->
         <div id="resultCard" class="result-card" hidden>
           <img id="thumb" class="thumb" alt="Превью изображения" hidden />
 
           <div class="result-body">
             <div class="result-name">Изображение</div>
 
+            <!-- URL НЕ показываем, только копирование -->
             <button id="copyLink" class="link-btn" type="button" title="Нажмите, чтобы скопировать ссылку">
-              <span id="resultUrl" class="link-text"></span>
-              <span class="copy-badge">копировать</span>
+              <span class="copy-badge">копировать ссылку</span>
             </button>
           </div>
 
@@ -113,6 +111,6 @@
     <div id="toast" class="toast" hidden>Скопировано</div>
   </div>
 
-  <script src="app.js?v=9"></script>
+  <script src="/app.js?v=12"></script>
 </body>
 </html>
