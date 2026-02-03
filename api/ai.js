@@ -1,22 +1,41 @@
-export const config = { api: { bodyParser: true } };
-
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ ok: false, error: "Method not allowed" });
+  // CORS (важно для Telegram WebView)
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  const N8N_AI_URL = process.env.N8N_AI_URL;
-  if (!N8N_AI_URL) return res.status(500).json({ ok: false, error: "Missing N8N_AI_URL env" });
+  if (req.method === "OPTIONS") {
+    res.status(200).end();
+    return;
+  }
+
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "Method not allowed" });
+    return;
+  }
+
+  const N8N_WEBHOOK = "https://broakk72.app.n8n.cloud/webhook/tg-form/ai";
 
   try {
-    const r = await fetch(N8N_AI_URL, {
+    const r = await fetch(N8N_WEBHOOK, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(req.body || {}),
+      body: JSON.stringify(req.body ?? {}),
     });
 
     const text = await r.text();
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    return res.status(r.status).send(text);
+    let data;
+    try { data = JSON.parse(text); } catch { data = { text }; }
+
+    if (!r.ok) {
+      res.status(r.status).json({
+        error: data?.error || data?.message || text || `HTTP ${r.status}`,
+      });
+      return;
+    }
+
+    res.status(200).json(data);
   } catch (e) {
-    return res.status(500).json({ ok: false, error: e?.message || "Proxy error" });
+    res.status(500).json({ error: e?.message || "Proxy error" });
   }
 }
