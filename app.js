@@ -1,16 +1,12 @@
 /* =========================
-   CONFIG (поставь свои URL)
+   CONFIG
    ========================= */
 
-// 1) Вжух (у тебя в репе есть api/create_submit.js → это точно верно для Vercel)
+// Один вебхук на генерацию title/subtitle
+const AI_WEBHOOK = "https://broakk72.app.n8n.cloud/webhook/tg-form/ai";
+
+// Вжух (если у тебя Vercel API как раньше)
 const SUBMIT_ENDPOINT = "/api/create_submit";
-
-// 2) Генерация заголовка по теме (поставь свой endpoint)
-const TITLE_ENDPOINT = ""; // например: "https://n8n.yourdomain/webhook/title"
-
-// 3) Генерация подзаголовка по теме+заголовку (поставь свой endpoint)
-const SUBTITLE_ENDPOINT = ""; // например: "https://n8n.yourdomain/webhook/subtitle"
-
 
 /* =========================
    DOM
@@ -36,20 +32,16 @@ const openLinkBtn = $("#openLink");
 
 const toastEl = $("#toast");
 
-
 /* =========================
    STATE
    ========================= */
 
 let titleTouched = false;
 let subtitleTouched = false;
-
 let lastTopicValue = "";
 
-let titleAbort = null;
-let subtitleAbort = null;
+let aiAbort = null;
 let submitAbort = null;
-
 
 /* =========================
    UI helpers
@@ -74,7 +66,6 @@ function showToast(text = "Скопировано") {
 
 function hideResult() {
   resultCard.hidden = true;
-  // чтобы не было “битого” превью
   thumbEl.removeAttribute("src");
   resultUrlEl.textContent = "";
   copyLinkBtn.onclick = null;
@@ -86,7 +77,6 @@ async function copyToClipboard(text) {
     await navigator.clipboard.writeText(text);
     return true;
   } catch (_) {
-    // fallback для некоторых WebView
     try {
       const ta = document.createElement("textarea");
       ta.value = text;
@@ -112,7 +102,6 @@ function renderResult(url) {
   if (!url) return;
 
   resultCard.hidden = false;
-
   thumbEl.src = url;
   resultUrlEl.textContent = url;
 
@@ -124,20 +113,18 @@ function renderResult(url) {
   openLinkBtn.onclick = () => window.open(url, "_blank", "noopener,noreferrer");
 }
 
-
 /* =========================
-   Networking helpers
+   Networking
    ========================= */
 
-async function postJson(url, body, abortSignal) {
+async function postJson(url, body, signal) {
   const r = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
-    signal: abortSignal,
+    signal,
   });
 
-  // Vercel API может вернуть не-JSON при ошибке — обрабатываем аккуратно
   const text = await r.text();
   let data = null;
   try { data = JSON.parse(text); } catch (_) {}
@@ -150,63 +137,90 @@ async function postJson(url, body, abortSignal) {
   return data ?? {};
 }
 
+/**
+ * Достаём title/subtitle из любого разумного формата n8n:
+ * - { title: "..." }
+ * - { subtitle: "..." }
+ * - { result: { title: "..." } }
+ * - { result: { subtitle: "..." } }
+ * - { data: { ... } }
+ * - "просто строка" (если n8n вернул plain text)
+ */
+function extractText(resp, key) {
+  if (typeof resp === "string") return resp;
+
+  const direct = resp?.[key];
+  if (typeof direct === "string") return direct;
+
+  const r1 = resp?.result?.[key];
+  if (typeof r1 === "string") return r1;
+
+  const r2 = resp?.data?.[key];
+  if (typeof r2 === "string") return r2;
+
+  const r3 = resp?.output?.[key];
+  if (typeof r3 === "string") return r3;
+
+  // иногда n8n возвращает { text: "..." }
+  if (key === "title" || key === "subtitle") {
+    const t = resp?.text || resp?.result?.text || resp?.data?.text;
+    if (typeof t === "string") return t;
+  }
+
+  return null;
+}
 
 /* =========================
-   Title/Subitle generation
+   AI generation (one webhook)
    ========================= */
 
 function canAutoOverwriteTitle() {
-  // Не трогаем заголовок, если юзер уже редактировал
   return !titleTouched && !titleEl.value.trim();
 }
-
 function canAutoOverwriteSubtitle() {
   return !subtitleTouched && !subtitleEl.value.trim();
 }
 
-async function generateTitleFromTopic(topic, { force = false } = {}) {
-  if (!TITLE_ENDPOINT) {
-    // Если endpoint не задан — просто не делаем ничего (чтобы не ломать)
-    return null;
-  }
-
+/**
+ * Генерация заголовка через один вебхук
+ * payload: { action:"title", topic }
+ */
+async function generateTitle(topic, { force = false } = {}) {
   if (!force && !canAutoOverwriteTitle()) return null;
 
-  if (titleAbort) titleAbort.abort();
-  titleAbort = new AbortController();
+  if (aiAbort) aiAbort.abort();
+  aiAbort = new AbortController();
 
   const resp = await postJson(
-    TITLE_ENDPOINT,
-    { topic },
-    titleAbort.signal
+    AI_WEBHOOK,
+    { action: "title", topic },
+    aiAbort.signal
   );
 
-  // ожидаем, что сервер вернёт { title: "..." } или { result: { title: "..." } }
-  const title = resp?.title || resp?.result?.title || resp?.data?.title;
+  const title = extractText(resp, "title");
   if (title && (force || canAutoOverwriteTitle())) {
     titleEl.value = title;
   }
   return title || null;
 }
 
-async function generateSubtitleFromTopic(topic, title, { force = false } = {}) {
-  if (!SUBTITLE_ENDPOINT) {
-    return null;
-  }
-
+/**
+ * Генерация подзаголовка через один вебхук
+ * payload: { action:"subtitle", topic, title }
+ */
+async function generateSubtitle(topic, title, { force = false } = {}) {
   if (!force && !canAutoOverwriteSubtitle()) return null;
 
-  if (subtitleAbort) subtitleAbort.abort();
-  subtitleAbort = new AbortController();
+  if (aiAbort) aiAbort.abort();
+  aiAbort = new AbortController();
 
   const resp = await postJson(
-    SUBTITLE_ENDPOINT,
-    { topic, title },
-    subtitleAbort.signal
+    AI_WEBHOOK,
+    { action: "subtitle", topic, title },
+    aiAbort.signal
   );
 
-  // ожидаем { subtitle: "..." } или { result: { subtitle: "..." } }
-  const subtitle = resp?.subtitle || resp?.result?.subtitle || resp?.data?.subtitle;
+  const subtitle = extractText(resp, "subtitle");
   if (subtitle && (force || canAutoOverwriteSubtitle())) {
     subtitleEl.value = subtitle;
   }
@@ -214,32 +228,30 @@ async function generateSubtitleFromTopic(topic, title, { force = false } = {}) {
 }
 
 /**
- * Автопайплайн: blur темы → заголовок → подзаголовок
- * - срабатывает только если тема изменилась
- * - не перетирает вручную введённые поля
+ * blur темы → title → subtitle
+ * - только если тема изменилась
+ * - не перетирает поля, если юзер уже редактировал
  */
 async function autoGenerateFromTopic() {
   const topic = topicEl.value.trim();
   if (!topic) return;
 
-  // чтобы не спамить если blur случается много раз без изменений
   if (topic === lastTopicValue) return;
   lastTopicValue = topic;
 
   showError("");
 
   try {
-    const title = await generateTitleFromTopic(topic, { force: false });
-    await generateSubtitleFromTopic(topic, title || titleEl.value.trim(), { force: false });
+    const t = await generateTitle(topic, { force: false });
+    const finalTitle = t || titleEl.value.trim();
+    await generateSubtitle(topic, finalTitle, { force: false });
   } catch (e) {
-    // автогенерация не должна ломать UX — показываем мягко
     showError(e?.message || "Ошибка автогенерации");
   }
 }
 
-
 /* =========================
-   Submit (Вжух)
+   Submit
    ========================= */
 
 async function submitGenerate() {
@@ -257,7 +269,6 @@ async function submitGenerate() {
   if (submitAbort) submitAbort.abort();
   submitAbort = new AbortController();
 
-  // ожидаем твой формат: { ok:true, result:{ images:[{url:"..."}] } }
   const resp = await postJson(SUBMIT_ENDPOINT, payload, submitAbort.signal);
 
   if (!resp?.ok) {
@@ -270,60 +281,57 @@ async function submitGenerate() {
   return url;
 }
 
-
 /* =========================
    Events
    ========================= */
 
-// Фикс: отмечаем, что юзер руками менял заголовок/подзаголовок
 titleEl.addEventListener("input", () => { titleTouched = true; });
 subtitleEl.addEventListener("input", () => { subtitleTouched = true; });
 
-// Автогенерация: по blur поля “Тема”
+// ✅ вернули авто-цепочку по blur темы
 topicEl.addEventListener("blur", () => {
   autoGenerateFromTopic();
 });
 
-// Кнопка перегенерации заголовка (force)
+// ↻ заголовок (force)
 regenTitleBtn.addEventListener("click", async () => {
   const topic = topicEl.value.trim();
   if (!topic) return showError("Сначала заполните «Тема».");
 
   showError("");
   try {
-    // если нажали кнопку — это осознанное действие → force
-    await generateTitleFromTopic(topic, { force: true });
-    // после принудительного заголовка логично обновить подзаголовок тоже, если его не трогали руками
-    await generateSubtitleFromTopic(topic, titleEl.value.trim(), { force: false });
+    await generateTitle(topic, { force: true });
+    // подзаголовок обновляем только если юзер его не трогал
+    await generateSubtitle(topic, titleEl.value.trim(), { force: false });
     showToast("Заголовок обновлён");
   } catch (e) {
     showError(e?.message || "Ошибка генерации заголовка");
   }
 });
 
-// Кнопка перегенерации подзаголовка (force)
+// ↻ подзаголовок (force)
 regenSubtitleBtn.addEventListener("click", async () => {
   const topic = topicEl.value.trim();
   if (!topic) return showError("Сначала заполните «Тема».");
 
   showError("");
   try {
-    await generateSubtitleFromTopic(topic, titleEl.value.trim(), { force: true });
+    await generateSubtitle(topic, titleEl.value.trim(), { force: true });
     showToast("Подзаголовок обновлён");
   } catch (e) {
     showError(e?.message || "Ошибка генерации подзаголовка");
   }
 });
 
-// Вжух
+// ✅ результат появляется только после ответа
 submitBtn.addEventListener("click", async () => {
   showError("");
-  hideResult();          // ✅ результат исчезает на старте
+  hideResult();     // прячем сразу
   setLoading(true);
 
   try {
     const url = await submitGenerate();
-    renderResult(url);   // ✅ результат появляется только после ответа
+    renderResult(url); // показываем только после успеха
   } catch (e) {
     showError(e?.message || "Ошибка");
   } finally {
@@ -331,5 +339,5 @@ submitBtn.addEventListener("click", async () => {
   }
 });
 
-// На старте результат всегда скрыт
+// На старте результат скрыт
 hideResult();
