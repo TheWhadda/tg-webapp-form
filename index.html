@@ -1,111 +1,107 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Генератор изображений</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TochkaBankGen</title>
 
-  <!-- Telegram WebApp SDK -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- Montserrat -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
   <div class="app">
     <header class="header">
-      <div class="header__title titleFont">Генератор изображений</div>
-      <div class="header__meta" id="tgMeta">Tochka Bank</div>
+      <h1 class="app-title">Генератор изображений</h1>
+      <div class="app-subtitle">Tochka Bank</div>
     </header>
 
     <main class="card">
-      <section class="section">
+      <section class="field">
         <label class="label" for="topic">Тема</label>
-        <input
-          id="topic"
-          class="input"
-          type="text"
-          placeholder="Например: Кредитная карта на 3% годовых"
-        />
+        <input id="topic" class="input" type="text" value="Кредитная карта на 3% годовых" />
         <div class="hint">Коротко: о чём изображение и для кого.</div>
       </section>
 
-      <section class="section">
+      <section class="field">
         <label class="label" for="title">Заголовок</label>
-
-        <div class="fieldWrap">
-          <textarea
-            id="title"
-            class="textarea textareaWithBtn"
-            rows="2"
-            placeholder="Введите заголовок или нажмите ↻"
-          ></textarea>
-
-          <button class="iconInField" id="regenTitle" type="button" title="Перегенерировать">
-            ↻
-          </button>
+        <div class="input-row">
+          <input id="title" class="input" type="text" value="Кредитная карта с выгодной ставкой 3%" />
+          <button id="regenTitle" class="icon-btn" type="button" aria-label="Перегенерировать заголовок">↻</button>
         </div>
       </section>
 
-      <section class="section">
+      <section class="field">
         <label class="label" for="subtitle">Подзаголовок</label>
-
-        <div class="fieldWrap">
-          <textarea
-            id="subtitle"
-            class="textarea textareaWithBtn"
-            rows="3"
-            placeholder="Введите подзаголовок или нажмите ↻"
-          ></textarea>
-
-          <button class="iconInField" id="regenSubtitle" type="button" title="Перегенерировать">
-            ↻
-          </button>
+        <div class="input-row">
+          <textarea id="subtitle" class="textarea" rows="2">Экономьте на процентах и управляйте расходами выгодно</textarea>
+          <button id="regenSubtitle" class="icon-btn" type="button" aria-label="Перегенерировать подзаголовок">↻</button>
         </div>
       </section>
 
-      <section class="section">
+      <section class="field">
         <div class="label">Размеры</div>
 
         <div class="sizes">
-          <label class="check">
-            <input type="checkbox" value="600x600" checked />
-            <span class="check__box"></span>
-            <span class="check__text">600 × 600</span>
+          <label class="size-item">
+            <input type="radio" name="size" value="600x600" checked />
+            <span class="size-ui">
+              <span class="radio-dot"></span>
+              <span class="size-text">600 × 600</span>
+            </span>
           </label>
 
-          <label class="check">
-            <input type="checkbox" value="1080x1350" />
-            <span class="check__box"></span>
-            <span class="check__text">1080 × 1350</span>
+          <label class="size-item">
+            <input type="radio" name="size" value="1080x1350" />
+            <span class="size-ui">
+              <span class="radio-dot"></span>
+              <span class="size-text">1080 × 1350</span>
+            </span>
           </label>
 
-          <label class="check">
-            <input type="checkbox" value="1080x607" />
-            <span class="check__box"></span>
-            <span class="check__text">1080 × 607</span>
+          <label class="size-item">
+            <input type="radio" name="size" value="1080x607" />
+            <span class="size-ui">
+              <span class="radio-dot"></span>
+              <span class="size-text">1080 × 607</span>
+            </span>
           </label>
         </div>
 
-        <div class="hint">Можно выбрать несколько размеров.</div>
+        <div class="hint">Можно выбрать только один размер.</div>
       </section>
 
-      <section class="section">
-        <button class="primary primaryFont" id="submitBtn" type="button">
-          Вжух
+      <section class="actions">
+        <button id="submit" class="btn-primary" type="button">
+          <span class="btn-text">Вжух</span>
+          <span class="spinner" aria-hidden="true"></span>
         </button>
-        <div class="globalStatus" id="globalStatus"></div>
+        <div id="error" class="error" hidden></div>
       </section>
 
-      <section class="section output" id="output" hidden>
-        <div class="label">Результат</div>
-        <div class="results" id="results"></div>
+      <section class="result">
+        <div class="result-title">Результат</div>
+
+        <div id="resultCard" class="result-card" hidden>
+          <img id="thumb" class="thumb" alt="Превью изображения" />
+
+          <div class="result-body">
+            <div class="result-name">Изображение</div>
+
+            <button id="copyLink" class="link-btn" type="button" title="Нажмите, чтобы скопировать ссылку">
+              <span id="resultUrl" class="link-text"></span>
+              <span class="copy-badge">копировать</span>
+            </button>
+          </div>
+
+          <button id="openLink" class="btn-secondary" type="button">Открыть</button>
+        </div>
       </section>
     </main>
+
+    <div id="toast" class="toast" hidden>Скопировано</div>
   </div>
 
   <script src="./app.js"></script>
