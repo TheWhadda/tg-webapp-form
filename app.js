@@ -39,8 +39,8 @@ function setSubmitLoading(isLoading) {
 }
 
 function setIconLoading(btn, isLoading) {
-  btn.classList.toggle("loading", !!isLoading);
   btn.disabled = !!isLoading;
+  btn.classList.toggle("loading", !!isLoading);
 }
 
 function showError(msg) {
@@ -85,11 +85,6 @@ async function copyToClipboard(text) {
   }
 }
 
-function getSelectedSize() {
-  const checked = document.querySelector('input[name="size"]:checked');
-  return checked ? checked.value : "600x600";
-}
-
 function renderResult(url) {
   resultCard.hidden = false;
   thumbEl.hidden = false;
@@ -106,11 +101,15 @@ function renderResult(url) {
 }
 
 function buildContext() {
-  // only values, nothing else
   const t = (titleEl.value || "").trim();
   const s = (subtitleEl.value || "").trim();
   if (t && s) return `${t}\n\n${s}`;
   return t || s || "";
+}
+
+function getSelectedSize() {
+  const checked = document.querySelector('input[name="size"]:checked');
+  return checked ? checked.value : "600x600";
 }
 
 async function postJson(url, body, signal) {
@@ -129,14 +128,12 @@ async function postJson(url, body, signal) {
     const msg = data?.error || data?.message || text || `HTTP ${r.status}`;
     throw new Error(msg);
   }
-
   return data ?? text;
 }
 
 function extractText(resp, key) {
   if (typeof resp === "string") return resp.trim();
-
-  const candidates = [
+  const cands = [
     resp?.[key],
     resp?.fields?.[key],
     resp?.result?.[key],
@@ -144,8 +141,7 @@ function extractText(resp, key) {
     resp?.text,
     resp?.fields?.text,
   ];
-
-  for (const c of candidates) {
+  for (const c of cands) {
     if (typeof c === "string" && c.trim()) return c.trim();
   }
   return null;
@@ -260,8 +256,7 @@ async function submitGenerate() {
   return url;
 }
 
-/* ========= init ========= */
-
+/* init */
 setStatus("JS: loaded ✅");
 hideResult();
 
@@ -311,12 +306,12 @@ regenSubtitleBtn.addEventListener("click", async () => {
 
 submitBtn.addEventListener("click", async () => {
   showError("");
-  hideResult();               // ✅ скрываем
-  setSubmitLoading(true);     // ✅ лоадер на кнопке
+  hideResult();
+  setSubmitLoading(true);
 
   try {
     const url = await submitGenerate();
-    renderResult(url);        // ✅ показываем после ответа
+    renderResult(url);
     setStatus("");
   } catch (e) {
     setStatus("");
