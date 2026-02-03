@@ -2,8 +2,8 @@
    CONFIG
    ========================= */
 
-const AI_ENDPOINT = "/api/ai";                 // прокси на n8n
-const SUBMIT_ENDPOINT = "/api/create_submit";  // твой submit
+const AI_ENDPOINT = "/api/ai";                 // Vercel proxy -> n8n
+const SUBMIT_ENDPOINT = "/api/create_submit";  // генерация картинки
 
 /* =========================
    DOM
@@ -149,36 +149,38 @@ async function postJson(url, body, signal) {
   return data ?? text;
 }
 
-function looksLikeTemplate(s) {
-  // на случай если внезапно придёт "{{ ... }}"
-  return typeof s === "string" && s.includes("{{") && s.includes("}}");
+/* =========================
+   Context builder (ВАЖНО)
+   ========================= */
+
+/**
+ * Ты просил слать title/subtitle в поле context.
+ * Я делаю context строкой — так проще для промпта/LLM в n8n.
+ */
+function buildContext() {
+  const t = (titleEl?.value || "").trim();
+  const s = (subtitleEl?.value || "").trim();
+  return `title: ${t}\nsubtitle: ${s}`.trim();
 }
 
 /**
- * УСТОЙЧИВЫЙ extract:
- * - поддерживает твой новый формат { ok:true, fields:{ title } }
+ * Поддержка твоего ответа:
+ * { ok:true, fields:{ title/subtitle:"..." } }
  */
 function extractText(resp, key) {
   if (typeof resp === "string") return resp.trim();
 
   const candidates = [
-    resp?.[key],                 // title
-    resp?.fields?.[key],          // fields.title  ✅ ВОТ ЭТО ТЕБЕ НУЖНО
+    resp?.[key],
+    resp?.fields?.[key],     // ✅ твой формат
     resp?.result?.[key],
     resp?.data?.[key],
-    resp?.output?.[key],
     resp?.text,
-    resp?.result?.text,
-    resp?.data?.text,
     resp?.fields?.text,
   ];
 
   for (const c of candidates) {
-    if (typeof c === "string" && c.trim()) {
-      const t = c.trim();
-      if (looksLikeTemplate(t)) return null; // не подставляем шаблоны
-      return t;
-    }
+    if (typeof c === "string" && c.trim()) return c.trim();
   }
   return null;
 }
@@ -206,14 +208,16 @@ async function generateTitle(topic, { force = false } = {}) {
 
   const resp = await postJson(
     AI_ENDPOINT,
-    { action: "title", topic },
+    {
+      action: "title",
+      topic,
+      context: buildContext(),      // ✅ отправляем context
+    },
     aiAbort.signal
   );
 
   const title = extractText(resp, "title");
-  if (!title) {
-    throw new Error("AI вернул ответ, но я не нашёл title (ожидаю title или fields.title).");
-  }
+  if (!title) throw new Error("AI ответил, но title не найден (ожидаю fields.title).");
 
   if (force || canOverwriteTitle()) {
     titleEl.value = title;
@@ -233,14 +237,17 @@ async function generateSubtitle(topic, title, { force = false } = {}) {
 
   const resp = await postJson(
     AI_ENDPOINT,
-    { action: "subtitle", topic, title },
+    {
+      action: "subtitle",
+      topic,
+      title,
+      context: buildContext(),      // ✅ отправляем context
+    },
     aiAbort.signal
   );
 
   const subtitle = extractText(resp, "subtitle");
-  if (!subtitle) {
-    throw new Error("AI вернул ответ, но я не нашёл subtitle (ожидаю subtitle или fields.subtitle).");
-  }
+  if (!subtitle) throw new Error("AI ответил, но subtitle не найден (ожидаю fields.subtitle).");
 
   if (force || canOverwriteSubtitle()) {
     subtitleEl.value = subtitle;
@@ -261,6 +268,7 @@ async function autoGenerateFromTopic() {
   try {
     const t = await generateTitle(topic, { force: false });
     await generateSubtitle(topic, t, { force: false });
+
     setStatus("AI: готово ✅");
     setTimeout(() => setStatus(""), 700);
   } catch (e) {
@@ -270,7 +278,7 @@ async function autoGenerateFromTopic() {
 }
 
 /* =========================
-   Submit
+   Submit (картинка)
    ========================= */
 
 async function submitGenerate() {
