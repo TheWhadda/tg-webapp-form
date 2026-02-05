@@ -15,6 +15,11 @@ const errorBox = $("#error");
 
 const resultsGrid = $("#resultsGrid");
 
+// lightbox
+const lightboxEl = $("#lightbox");
+const lightboxImg = $("#lightboxImg");
+const lightboxClose = $("#lightboxClose");
+
 let titleTouched = false;
 let subtitleTouched = false;
 let lastTopic = "";
@@ -40,6 +45,22 @@ function showError(msg) {
 function hideResults() {
   resultsGrid.hidden = true;
   resultsGrid.innerHTML = "";
+}
+
+function openLightbox(url) {
+  if (!url) return;
+  lightboxImg.src = url;
+  lightboxEl.hidden = false;
+  lightboxEl.setAttribute("aria-hidden", "false");
+  // блок скролла, чтобы оверлей не "ездил"
+  document.body.style.overflow = "hidden";
+}
+
+function closeLightbox() {
+  lightboxEl.hidden = true;
+  lightboxEl.setAttribute("aria-hidden", "true");
+  lightboxImg.removeAttribute("src");
+  document.body.style.overflow = "";
 }
 
 function buildContext() {
@@ -164,7 +185,6 @@ async function autoGenerateFromTopic() {
 }
 
 function filenameFor(url, idx, size) {
-  // простое имя, чтобы download выглядел нормально
   const safeSize = (size || "img").replace(/[^0-9x]/g, "");
   return `tochka_${safeSize}_${String(idx + 1).padStart(2, "0")}.png`;
 }
@@ -186,11 +206,11 @@ function renderResults(images, size) {
     const item = document.createElement("div");
     item.className = "result-item";
 
-    // миниатюра кликабельная (просто открыть)
-    const aThumb = document.createElement("a");
-    aThumb.href = url;
-    aThumb.target = "_blank";
-    aThumb.rel = "noopener noreferrer";
+    // ✅ thumb opens lightbox
+    const thumbBtn = document.createElement("button");
+    thumbBtn.type = "button";
+    thumbBtn.className = "thumb-btn";
+    thumbBtn.addEventListener("click", () => openLightbox(url));
 
     const img = document.createElement("img");
     img.className = "result-thumb";
@@ -198,9 +218,8 @@ function renderResults(images, size) {
     img.alt = "Превью";
     img.src = url;
 
-    aThumb.appendChild(img);
+    thumbBtn.appendChild(img);
 
-    // скачать
     const aDl = document.createElement("a");
     aDl.className = "download-btn";
     aDl.textContent = "Скачать";
@@ -209,7 +228,7 @@ function renderResults(images, size) {
     aDl.rel = "noopener noreferrer";
     aDl.setAttribute("download", filenameFor(url, idx, size));
 
-    item.appendChild(aThumb);
+    item.appendChild(thumbBtn);
     item.appendChild(aDl);
 
     resultsGrid.appendChild(item);
@@ -301,4 +320,13 @@ submitBtn.addEventListener("click", async () => {
   } finally {
     setSubmitLoading(false);
   }
+});
+
+/* lightbox events */
+lightboxClose.addEventListener("click", closeLightbox);
+lightboxEl.addEventListener("click", (e) => {
+  if (e.target && e.target.dataset && e.target.dataset.close === "1") closeLightbox();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !lightboxEl.hidden) closeLightbox();
 });
