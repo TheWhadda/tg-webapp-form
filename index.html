@@ -13,7 +13,7 @@
     rel="stylesheet"
   />
 
-  <link rel="stylesheet" href="/styles.css?v=18" />
+  <link rel="stylesheet" href="/styles.css?v=19" />
 </head>
 <body>
   <div class="app">
@@ -98,7 +98,7 @@
         <div class="hint">Можно выбрать только один размер.</div>
       </section>
 
-      <!-- ✅ COUNT: квадраты нарисованы -->
+      <!-- COUNT (2 columns) -->
       <section class="field">
         <div class="label">Количество генераций</div>
         <div class="counts">
@@ -134,15 +134,12 @@
             </span>
           </label>
 
-          <!-- 10 -->
+          <!-- 10 = 1 square × 10 -->
           <label class="count-item">
             <input type="radio" name="count" value="10" />
             <span class="count-ui">
               <span class="radio-dot"></span>
-              <span class="count-visual ten" aria-label="10">
-                <span class="sq"></span><span class="sq"></span><span class="sq"></span><span class="sq"></span><span class="sq"></span>
-                <span class="sq"></span><span class="sq"></span><span class="sq"></span><span class="sq"></span><span class="sq"></span>
-              </span>
+              <span class="count-visual one" aria-label="10"></span>
               <span class="count-x10">×10</span>
             </span>
           </label>
@@ -178,6 +175,6 @@
     <div id="toast" class="toast" hidden>Скопировано</div>
   </div>
 
-  <script src="/app.js?v=18"></script>
+  <script src="/app.js?v=19"></script>
 </body>
 </html>
