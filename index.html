@@ -13,7 +13,7 @@
     rel="stylesheet"
   />
 
-  <link rel="stylesheet" href="/styles.css?v=19" />
+  <link rel="stylesheet" href="/styles.css?v=22" />
 </head>
 <body>
   <div class="app">
@@ -25,26 +25,18 @@
     <main class="card">
       <section class="field">
         <label class="label" for="topic">Тема</label>
-        <input
-          id="topic"
-          class="input"
-          type="text"
-          placeholder="Например: Кредитная карта на 3% годовых"
-          autocomplete="off"
-        />
+        <input id="topic" class="input" type="text"
+               placeholder="Например: Кредитная карта на 3% годовых"
+               autocomplete="off" />
         <div class="hint">Коротко: о чём изображение и для кого.</div>
       </section>
 
       <section class="field">
         <label class="label" for="title">Заголовок</label>
         <div class="input-row">
-          <input
-            id="title"
-            class="input"
-            type="text"
-            placeholder="Например: Кредитная карта с выгодной ставкой"
-            autocomplete="off"
-          />
+          <input id="title" class="input" type="text"
+                 placeholder="Например: Кредитная карта с выгодной ставкой"
+                 autocomplete="off" />
           <button id="regenTitle" class="icon-btn" type="button" aria-label="Перегенерировать заголовок">
             <span class="icon">↻</span>
             <span class="spinner" aria-hidden="true"></span>
@@ -55,12 +47,8 @@
       <section class="field">
         <label class="label" for="subtitle">Подзаголовок</label>
         <div class="input-row">
-          <textarea
-            id="subtitle"
-            class="textarea"
-            rows="2"
-            placeholder="Например: Экономьте на процентах и управляйте расходами"
-          ></textarea>
+          <textarea id="subtitle" class="textarea" rows="2"
+                    placeholder="Например: Экономьте на процентах и управляйте расходами"></textarea>
           <button id="regenSubtitle" class="icon-btn" type="button" aria-label="Перегенерировать подзаголовок">
             <span class="icon">↻</span>
             <span class="spinner" aria-hidden="true"></span>
@@ -98,11 +86,9 @@
         <div class="hint">Можно выбрать только один размер.</div>
       </section>
 
-      <!-- COUNT (2 columns) -->
       <section class="field">
         <div class="label">Количество генераций</div>
         <div class="counts">
-          <!-- 1 -->
           <label class="count-item">
             <input type="radio" name="count" value="1" checked />
             <span class="count-ui">
@@ -111,7 +97,6 @@
             </span>
           </label>
 
-          <!-- 2 -->
           <label class="count-item">
             <input type="radio" name="count" value="2" />
             <span class="count-ui">
@@ -122,7 +107,6 @@
             </span>
           </label>
 
-          <!-- 4 -->
           <label class="count-item">
             <input type="radio" name="count" value="4" />
             <span class="count-ui">
@@ -134,7 +118,6 @@
             </span>
           </label>
 
-          <!-- 10 = 1 square × 10 -->
           <label class="count-item">
             <input type="radio" name="count" value="10" />
             <span class="count-ui">
@@ -154,27 +137,15 @@
         <div id="error" class="error" hidden></div>
       </section>
 
+      <!-- ✅ RESULTS -->
       <section class="result">
-        <div id="resultTitle" class="result-title" hidden>Результат</div>
-
-        <div id="resultCard" class="result-card" hidden>
-          <img id="thumb" class="thumb" alt="Превью изображения" hidden />
-
-          <div class="result-body">
-            <div id="resultName" class="result-name"></div>
-            <button id="copyLink" class="link-btn" type="button" title="Нажмите, чтобы скопировать ссылку">
-              <span class="copy-badge">копировать ссылку</span>
-            </button>
-          </div>
-
-          <button id="openLink" class="btn-secondary" type="button">Открыть</button>
-        </div>
+        <div id="resultsGrid" class="results-grid" hidden></div>
       </section>
     </main>
 
     <div id="toast" class="toast" hidden>Скопировано</div>
   </div>
 
-  <script src="/app.js?v=19"></script>
+  <script src="/app.js?v=22"></script>
 </body>
 </html>
