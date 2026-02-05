@@ -241,7 +241,7 @@ async function submitGenerate() {
     title: titleEl.value.trim(),
     subtitle: subtitleEl.value.trim(),
     size,
-    count, // ✅ 1 / 2 / 4 / 10
+    count
   };
 
   if (!payload.topic) throw new Error("Заполните поле «Тема».");
