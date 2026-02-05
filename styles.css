@@ -1,157 +1,602 @@
-<!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8" />
-  <base href="./" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TochkaBankGen</title>
+:root{
+  --bg:#0f1720;
+  --card:#1b1f24;
+  --text:#fff;
+  --muted2:rgba(255,255,255,.45);
+  --stroke:rgba(255,255,255,.10);
+  --accent:#7a3ff0;
+  --radius:18px;
+}
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet"
-  />
+*{box-sizing:border-box}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  <link rel="stylesheet" href="/styles.css?v=23" />
-</head>
-<body>
-  <div class="app">
-    <header class="header">
-      <h1 class="app-title">Генератор изображений</h1>
-      <div class="app-subtitle">Tochka Bank</div>
-    </header>
+/* ✅ фиксируем градиент */
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:"Montserrat",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--text);
+  background: #0b1118;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  background:
+    radial-gradient(1000px 400px at 20% -10%, rgba(122,63,240,.25), transparent 60%),
+    linear-gradient(180deg,#0b1118,var(--bg));
+  background-attachment: fixed;
+  background-repeat:no-repeat;
+  background-size:cover;
+}
 
-    <main class="card">
-      <section class="field">
-        <label class="label" for="topic">Тема</label>
-        <input id="topic" class="input" type="text"
-               placeholder="Например: Кредитная карта на 3% годовых"
-               autocomplete="off" />
-        <div class="hint">Коротко: о чём изображение и для кого.</div>
-      </section>
+.app{max-width:520px;margin:0 auto;padding:18px 14px 28px}
+.header{padding:6px 4px 14px}
+.app-title{margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.app-subtitle{margin-top:4px;color:var(--muted2);font-size:13px;font-weight:500}
 
-      <section class="field">
-        <label class="label" for="title">Заголовок</label>
-        <div class="input-row">
-          <input id="title" class="input" type="text"
-                 placeholder="Например: Кредитная карта с выгодной ставкой"
-                 autocomplete="off" />
-          <button id="regenTitle" class="icon-btn" type="button" aria-label="Перегенерировать заголовок">
-            <span class="icon">↻</span>
-            <span class="spinner" aria-hidden="true"></span>
-          </button>
-        </div>
-      </section>
+.card{
+  background:
+    radial-gradient(1000px 400px at 20% -10%, rgba(122,63,240,.25), transparent 60%),
+    linear-gradient(180deg,var(--card),#161a1f);
+  border:1px solid var(--stroke);
+  border-radius:22px;
+  padding:16px;
+}
 
-      <section class="field">
-        <label class="label" for="subtitle">Подзаголовок</label>
-        <div class="input-row">
-          <textarea id="subtitle" class="textarea" rows="2"
-                    placeholder="Например: Экономьте на процентах и управляйте расходами"></textarea>
-          <button id="regenSubtitle" class="icon-btn" type="button" aria-label="Перегенерировать подзаголовок">
-            <span class="icon">↻</span>
-            <span class="spinner" aria-hidden="true"></span>
-          </button>
-        </div>
-      </section>
+.field{margin-bottom:14px}
+.label{font-size:13px;font-weight:700;margin-bottom:8px;display:block}
+.hint{margin-top:6px;font-size:12px;color:var(--muted2)}
 
-      <section class="field">
-        <div class="label">Размеры</div>
-        <div class="sizes">
-          <label class="size-item">
-            <input type="radio" name="size" value="600x600" checked />
-            <span class="size-ui">
-              <span class="radio-dot"></span>
-              <span class="size-text">600 × 600</span>
-            </span>
-          </label>
+.input,.textarea{
+  width:100%;
+  border-radius:var(--radius);
+  border:1px solid var(--stroke);
+  background:rgba(255,255,255,.04);
+  color:var(--text);
+  padding:12px 14px;
+  outline:none;
+  font-size:14px;
+  font-family:"Montserrat",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  font-weight:600;
+}
+.textarea{resize:none;line-height:1.35;padding-right:54px}
 
-          <label class="size-item">
-            <input type="radio" name="size" value="1080x1350" />
-            <span class="size-ui">
-              <span class="radio-dot"></span>
-              <span class="size-text">1080 × 1350</span>
-            </span>
-          </label>
+.input::placeholder,.textarea::placeholder{color:rgba(255,255,255,.40);font-weight:600}
+.input:focus,.textarea:focus{border-color:rgba(122,63,240,.55);box-shadow:0 0 0 3px rgba(122,63,240,.18)}
 
-          <label class="size-item">
-            <input type="radio" name="size" value="1080x607" />
-            <span class="size-ui">
-              <span class="radio-dot"></span>
-              <span class="size-text">1080 × 607</span>
-            </span>
-          </label>
-        </div>
-        <div class="hint">Можно выбрать только один размер.</div>
-      </section>
+.input-row{display:grid;grid-template-columns:1fr 44px;gap:10px;align-items:start}
 
-      <section class="field">
-        <div class="label">Количество генераций</div>
-        <div class="counts">
-          <label class="count-item">
-            <input type="radio" name="count" value="1" checked />
-            <span class="count-ui">
-              <span class="radio-dot"></span>
-              <span class="count-visual one" aria-label="1"></span>
-            </span>
-          </label>
+/* icon buttons */
+.icon-btn{
+  height:44px;width:44px;
+  border-radius:14px;
+  border:1px solid rgba(122,63,240,.45);
+  background:rgba(122,63,240,.16);
+  color:#e9ddff;
+  cursor:pointer;
+  display:grid;
+  place-items:center;
+  position:relative;
+  transition:transform .08s ease, background .12s ease, opacity .12s ease;
+  overflow:hidden;
+}
+.icon-btn:active{transform:translateY(1px)}
+.icon-btn:hover{background:rgba(122,63,240,.22)}
+.icon-btn .icon{font-size:18px;line-height:1}
+.icon-btn .spinner{
+  position:absolute;left:50%;top:50%;
+  width:18px;height:18px;margin-left:-9px;margin-top:-9px;
+  border-radius:999px;
+  border:2px solid rgba(255,255,255,.55);
+  border-top-color:rgba(255,255,255,0);
+  display:none;
+  animation:spin .75s linear infinite;
+  pointer-events:none;
+}
+.icon-btn.loading,.icon-btn[aria-busy="true"]{pointer-events:none;opacity:.95}
+.icon-btn.loading .icon,.icon-btn[aria-busy="true"] .icon{visibility:hidden}
+.icon-btn.loading .spinner,.icon-btn[aria-busy="true"] .spinner{display:block}
 
-          <label class="count-item">
-            <input type="radio" name="count" value="2" />
-            <span class="count-ui">
-              <span class="radio-dot"></span>
-              <span class="count-visual two" aria-label="2">
-                <span class="sq"></span><span class="sq"></span>
-              </span>
-            </span>
-          </label>
+/* radio dot */
+.radio-dot{
+  width:18px;height:18px;border-radius:999px;
+  border:2px solid rgba(255,255,255,.35);
+  position:relative;flex:0 0 auto;
+}
 
-          <label class="count-item">
-            <input type="radio" name="count" value="4" />
-            <span class="count-ui">
-              <span class="radio-dot"></span>
-              <span class="count-visual four" aria-label="4">
-                <span class="sq"></span><span class="sq"></span>
-                <span class="sq"></span><span class="sq"></span>
-              </span>
-            </span>
-          </label>
+/* sizes */
+.sizes{display:grid;gap:10px}
+.size-item{display:block;cursor:pointer;user-select:none}
+.size-item input{position:absolute;opacity:0;pointer-events:none}
+.size-ui{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;
+  border-radius:var(--radius);
+  border:1px solid var(--stroke);
+  background:rgba(255,255,255,.04);
+}
+.size-text{font-size:14px;font-weight:600}
+.size-item input:checked + .size-ui{border-color:rgba(122,63,240,.55);background:rgba(122,63,240,.12)}
+.size-item input:checked + .size-ui .radio-dot{border-color:rgba(122,63,240,.9)}
+.size-item input:checked + .size-ui .radio-dot::after{
+  content:"";position:absolute;inset:4px;border-radius:999px;background:rgba(122,63,240,.95);
+}
 
-          <label class="count-item">
-            <input type="radio" name="count" value="10" />
-            <span class="count-ui">
-              <span class="radio-dot"></span>
-              <span class="count-visual one" aria-label="10"></span>
-              <span class="count-x10">×10</span>
-            </span>
-          </label>
-        </div>
-      </section>
+/* counts */
+.counts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.count-item{display:block;cursor:pointer;user-select:none}
+.count-item input{position:absolute;opacity:0;pointer-events:none}
+.count-ui{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;
+  border-radius:var(--radius);
+  border:1px solid var(--stroke);
+  background:rgba(255,255,255,.04);
+  min-height:50px;
+}
+.count-visual{display:grid;gap:6px;align-items:center;justify-items:center}
+.count-visual.one{
+  width:18px;height:18px;border-radius:6px;
+  border:2px solid rgba(255,255,255,.70);
+  background:rgba(255,255,255,.06);
+}
+.count-visual.two{grid-template-columns:repeat(2,18px)}
+.count-visual.four{grid-template-columns:repeat(2,18px);grid-template-rows:repeat(2,18px)}
+.count-visual .sq{
+  width:18px;height:18px;border-radius:6px;
+  border:2px solid rgba(255,255,255,.70);
+  background:rgba(255,255,255,.06);
+}
+.count-x10{font-size:12px;font-weight:800;color:rgba(255,255,255,.72);margin-left:-6px}
+.count-item input:checked + .count-ui{border-color:rgba(122,63,240,.55);background:rgba(122,63,240,.12)}
+.count-item input:checked + .count-ui .radio-dot{border-color:rgba(122,63,240,.9)}
+.count-item input:checked + .count-ui .radio-dot::after{
+  content:"";position:absolute;inset:4px;border-radius:999px;background:rgba(122,63,240,.95);
+}
+.count-item input:checked + .count-ui .count-visual.one,
+.count-item input:checked + .count-ui .count-visual .sq{border-color:rgba(233,221,255,.95)}
 
-      <section class="actions">
-        <button id="submit" class="btn-primary" type="button">
-          <span class="btn-text">Вжух</span>
-          <span class="spinner" aria-hidden="true"></span>
-        </button>
-        <div id="error" class="error" hidden></div>
-      </section>
+/* actions */
+.actions{margin:12px 0 6px}
+.btn-primary{
+  width:100%;height:52px;
+  border:0;border-radius:16px;
+  background:var(--accent);color:#fff;
+  font-weight:800;font-size:16px;
+  cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:10px;
+}
+.btn-primary:disabled{opacity:.75;cursor:not-allowed}
+.btn-primary .spinner{
+  width:18px;height:18px;border-radius:999px;
+  border:2px solid rgba(255,255,255,.55);
+  border-top-color:rgba(255,255,255,0);
+  display:none;
+  animation:spin .75s linear infinite;
+}
+.btn-primary.loading .spinner{display:inline-block}
 
-      <section class="result">
-        <div id="resultsGrid" class="results-grid" hidden></div>
-      </section>
-    </main>
-  </div>
+.error{
+  margin-top:10px;
+  font-size:13px;
+  color:#ffd2d2;
+  background:rgba(255,77,77,.12);
+  border:1px solid rgba(255,77,77,.25);
+  padding:10px 12px;
+  border-radius:14px;
+}
 
-  <!-- ✅ Lightbox -->
-  <div id="lightbox" class="lightbox" hidden aria-hidden="true">
-    <div class="lightbox-backdrop" data-close="1"></div>
-    <div class="lightbox-content" role="dialog" aria-modal="true">
-      <button id="lightboxClose" class="lightbox-close" type="button" aria-label="Закрыть">×</button>
-      <img id="lightboxImg" class="lightbox-img" alt="Просмотр" />
-    </div>
-  </div>
+/* results */
+.result{margin-top:12px}
+.results-grid[hidden]{display:none!important}
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-  <script src="/app.js?v=23"></script>
-</body>
-</html>
+.result-item{
+  border-radius:18px;
+  border:1px solid var(--stroke);
+  background:rgba(255,255,255,.04);
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.result-thumb{
+  width:100%;
+  aspect-ratio:1/1;
+  border-radius:14px;
+  object-fit:cover;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.06);
+  display:block;
+}
+.thumb-btn{
+  border:0;
+  padding:0;
+  background:transparent;
+  cursor:pointer;
+  border-radius:14px;
+}
+.thumb-btn:focus-visible{
+  outline: none;
+  box-shadow:0 0 0 3px rgba(122,63,240,.18);
+}
+.download-btn{
+  height:38px;
+  border-radius:14px;
+  border:1px solid rgba(122,63,240,.40);
+  background:rgba(122,63,240,.14);
+  color:#f1eaff;
+  font-weight:800;
+  font-size:13px;
+  text-decoration:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* ✅ lightbox */
+.lightbox[hidden]{display:none!important}
+.lightbox{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:grid;
+  place-items:center;
+}
+.lightbox-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.82);
+}
+.lightbox-content{
+  position:relative;
+  z-index:1;
+  width:min(96vw, 980px);
+  height:min(92vh, 980px);
+  display:grid;
+  place-items:center;
+  padding:16px;
+}
+.lightbox-img{
+  max-width:100%;
+  max-height:100%;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);
+}
+.lightbox-close{
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  font-size:28px;
+  line-height:1;
+  cursor:pointer;
+}
+
+/* toast */
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:18px;
+  transform:translateX(-50%);
+  background:rgba(18,20,24,.92);
+  border:1px solid rgba(255,255,255,.12);
+  color:rgba(255,255,255,.9);
+  padding:10px 14px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:700;
+  box-shadow:0 10px 24px rgba(0,0,0,.35);
+}
+:root{
+  --bg:#0f1720;
+  --card:#1b1f24;
+  --text:#fff;
+  --muted2:rgba(255,255,255,.45);
+  --stroke:rgba(255,255,255,.10);
+  --accent:#7a3ff0;
+  --radius:18px;
+}
+
+*{box-sizing:border-box}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ✅ фиксируем градиент */
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:"Montserrat",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--text);
+  background: #0b1118;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  background:
+    radial-gradient(1000px 400px at 20% -10%, rgba(122,63,240,.25), transparent 60%),
+    linear-gradient(180deg,#0b1118,var(--bg));
+  background-attachment: fixed;
+  background-repeat:no-repeat;
+  background-size:cover;
+}
+
+.app{max-width:520px;margin:0 auto;padding:18px 14px 28px}
+.header{padding:6px 4px 14px}
+.app-title{margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.app-subtitle{margin-top:4px;color:var(--muted2);font-size:13px;font-weight:500}
+
+.card{
+  background:
+    radial-gradient(1000px 400px at 20% -10%, rgba(122,63,240,.25), transparent 60%),
+    linear-gradient(180deg,var(--card),#161a1f);
+  border:1px solid var(--stroke);
+  border-radius:22px;
+  padding:16px;
+}
+
+.field{margin-bottom:14px}
+.label{font-size:13px;font-weight:700;margin-bottom:8px;display:block}
+.hint{margin-top:6px;font-size:12px;color:var(--muted2)}
+
+.input,.textarea{
+  width:100%;
+  border-radius:var(--radius);
+  border:1px solid var(--stroke);
+  background:rgba(255,255,255,.04);
+  color:var(--text);
+  padding:12px 14px;
+  outline:none;
+  font-size:14px;
+  font-family:"Montserrat",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  font-weight:600;
+}
+.textarea{resize:none;line-height:1.35;padding-right:54px}
+
+.input::placeholder,.textarea::placeholder{color:rgba(255,255,255,.40);font-weight:600}
+.input:focus,.textarea:focus{border-color:rgba(122,63,240,.55);box-shadow:0 0 0 3px rgba(122,63,240,.18)}
+
+.input-row{display:grid;grid-template-columns:1fr 44px;gap:10px;align-items:start}
+
+/* icon buttons */
+.icon-btn{
+  height:44px;width:44px;
+  border-radius:14px;
+  border:1px solid rgba(122,63,240,.45);
+  background:rgba(122,63,240,.16);
+  color:#e9ddff;
+  cursor:pointer;
+  display:grid;
+  place-items:center;
+  position:relative;
+  transition:transform .08s ease, background .12s ease, opacity .12s ease;
+  overflow:hidden;
+}
+.icon-btn:active{transform:translateY(1px)}
+.icon-btn:hover{background:rgba(122,63,240,.22)}
+.icon-btn .icon{font-size:18px;line-height:1}
+.icon-btn .spinner{
+  position:absolute;left:50%;top:50%;
+  width:18px;height:18px;margin-left:-9px;margin-top:-9px;
+  border-radius:999px;
+  border:2px solid rgba(255,255,255,.55);
+  border-top-color:rgba(255,255,255,0);
+  display:none;
+  animation:spin .75s linear infinite;
+  pointer-events:none;
+}
+.icon-btn.loading,.icon-btn[aria-busy="true"]{pointer-events:none;opacity:.95}
+.icon-btn.loading .icon,.icon-btn[aria-busy="true"] .icon{visibility:hidden}
+.icon-btn.loading .spinner,.icon-btn[aria-busy="true"] .spinner{display:block}
+
+/* radio dot */
+.radio-dot{
+  width:18px;height:18px;border-radius:999px;
+  border:2px solid rgba(255,255,255,.35);
+  position:relative;flex:0 0 auto;
+}
+
+/* sizes */
+.sizes{display:grid;gap:10px}
+.size-item{display:block;cursor:pointer;user-select:none}
+.size-item input{position:absolute;opacity:0;pointer-events:none}
+.size-ui{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;
+  border-radius:var(--radius);
+  border:1px solid var(--stroke);
+  background:rgba(255,255,255,.04);
+}
+.size-text{font-size:14px;font-weight:600}
+.size-item input:checked + .size-ui{border-color:rgba(122,63,240,.55);background:rgba(122,63,240,.12)}
+.size-item input:checked + .size-ui .radio-dot{border-color:rgba(122,63,240,.9)}
+.size-item input:checked + .size-ui .radio-dot::after{
+  content:"";position:absolute;inset:4px;border-radius:999px;background:rgba(122,63,240,.95);
+}
+
+/* counts */
+.counts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.count-item{display:block;cursor:pointer;user-select:none}
+.count-item input{position:absolute;opacity:0;pointer-events:none}
+.count-ui{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;
+  border-radius:var(--radius);
+  border:1px solid var(--stroke);
+  background:rgba(255,255,255,.04);
+  min-height:50px;
+}
+.count-visual{display:grid;gap:6px;align-items:center;justify-items:center}
+.count-visual.one{
+  width:18px;height:18px;border-radius:6px;
+  border:2px solid rgba(255,255,255,.70);
+  background:rgba(255,255,255,.06);
+}
+.count-visual.two{grid-template-columns:repeat(2,18px)}
+.count-visual.four{grid-template-columns:repeat(2,18px);grid-template-rows:repeat(2,18px)}
+.count-visual .sq{
+  width:18px;height:18px;border-radius:6px;
+  border:2px solid rgba(255,255,255,.70);
+  background:rgba(255,255,255,.06);
+}
+.count-x10{font-size:12px;font-weight:800;color:rgba(255,255,255,.72);margin-left:-6px}
+.count-item input:checked + .count-ui{border-color:rgba(122,63,240,.55);background:rgba(122,63,240,.12)}
+.count-item input:checked + .count-ui .radio-dot{border-color:rgba(122,63,240,.9)}
+.count-item input:checked + .count-ui .radio-dot::after{
+  content:"";position:absolute;inset:4px;border-radius:999px;background:rgba(122,63,240,.95);
+}
+.count-item input:checked + .count-ui .count-visual.one,
+.count-item input:checked + .count-ui .count-visual .sq{border-color:rgba(233,221,255,.95)}
+
+/* actions */
+.actions{margin:12px 0 6px}
+.btn-primary{
+  width:100%;height:52px;
+  border:0;border-radius:16px;
+  background:var(--accent);color:#fff;
+  font-weight:800;font-size:16px;
+  cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:10px;
+}
+.btn-primary:disabled{opacity:.75;cursor:not-allowed}
+.btn-primary .spinner{
+  width:18px;height:18px;border-radius:999px;
+  border:2px solid rgba(255,255,255,.55);
+  border-top-color:rgba(255,255,255,0);
+  display:none;
+  animation:spin .75s linear infinite;
+}
+.btn-primary.loading .spinner{display:inline-block}
+
+.error{
+  margin-top:10px;
+  font-size:13px;
+  color:#ffd2d2;
+  background:rgba(255,77,77,.12);
+  border:1px solid rgba(255,77,77,.25);
+  padding:10px 12px;
+  border-radius:14px;
+}
+
+/* results */
+.result{margin-top:12px}
+.results-grid[hidden]{display:none!important}
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+.result-item{
+  border-radius:18px;
+  border:1px solid var(--stroke);
+  background:rgba(255,255,255,.04);
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.result-thumb{
+  width:100%;
+  aspect-ratio:1/1;
+  border-radius:14px;
+  object-fit:cover;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.06);
+  display:block;
+}
+.thumb-btn{
+  border:0;
+  padding:0;
+  background:transparent;
+  cursor:pointer;
+  border-radius:14px;
+}
+.thumb-btn:focus-visible{
+  outline: none;
+  box-shadow:0 0 0 3px rgba(122,63,240,.18);
+}
+.download-btn{
+  height:38px;
+  border-radius:14px;
+  border:1px solid rgba(122,63,240,.40);
+  background:rgba(122,63,240,.14);
+  color:#f1eaff;
+  font-weight:800;
+  font-size:13px;
+  text-decoration:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* ✅ lightbox */
+.lightbox[hidden]{display:none!important}
+.lightbox{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:grid;
+  place-items:center;
+}
+.lightbox-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.82);
+}
+.lightbox-content{
+  position:relative;
+  z-index:1;
+  width:min(96vw, 980px);
+  height:min(92vh, 980px);
+  display:grid;
+  place-items:center;
+  padding:16px;
+}
+.lightbox-img{
+  max-width:100%;
+  max-height:100%;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);
+}
+.lightbox-close{
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  font-size:28px;
+  line-height:1;
+  cursor:pointer;
+}
+
+/* toast */
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:18px;
+  transform:translateX(-50%);
+  background:rgba(18,20,24,.92);
+  border:1px solid rgba(255,255,255,.12);
+  color:rgba(255,255,255,.9);
+  padding:10px 14px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:700;
+  box-shadow:0 10px 24px rgba(0,0,0,.35);
+}
