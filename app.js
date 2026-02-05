@@ -62,7 +62,7 @@ function hideResult() {
   thumbEl.hidden = true;
   thumbEl.removeAttribute("src");
 
-  if (resultNameEl) resultNameEl.textContent = "";
+  resultNameEl.textContent = "";
 
   copyLinkBtn.onclick = null;
   openLinkBtn.onclick = null;
@@ -93,8 +93,7 @@ function renderResult(url, size) {
   lastImageUrl = url || "";
   if (!lastImageUrl) return;
 
-  // ✅ название = выбранный размер
-  if (resultNameEl) resultNameEl.textContent = size || "";
+  resultNameEl.textContent = size || "";
 
   resultTitleEl.hidden = false;
   resultCard.hidden = false;
@@ -120,6 +119,12 @@ function buildContext() {
 function getSelectedSize() {
   const checked = document.querySelector('input[name="size"]:checked');
   return checked ? checked.value : "600x600";
+}
+
+function getSelectedCount() {
+  const checked = document.querySelector('input[name="count"]:checked');
+  const v = checked ? parseInt(checked.value, 10) : 1;
+  return Number.isFinite(v) ? v : 1;
 }
 
 async function postJson(url, body, signal) {
@@ -229,12 +234,14 @@ async function autoGenerateFromTopic() {
 
 async function submitGenerate() {
   const size = getSelectedSize();
+  const count = getSelectedCount();
 
   const payload = {
     topic: topicEl.value.trim(),
     title: titleEl.value.trim(),
     subtitle: subtitleEl.value.trim(),
     size,
+    count, // ✅ 1 / 2 / 4 / 10
   };
 
   if (!payload.topic) throw new Error("Заполните поле «Тема».");
