@@ -13,14 +13,7 @@ const regenSubtitleBtn = $("#regenSubtitle");
 const submitBtn = $("#submit");
 const errorBox = $("#error");
 
-const resultTitleEl = $("#resultTitle");
-const resultCard = $("#resultCard");
-const thumbEl = $("#thumb");
-const resultNameEl = $("#resultName");
-const copyLinkBtn = $("#copyLink");
-const openLinkBtn = $("#openLink");
-
-const toastEl = $("#toast");
+const resultsGrid = $("#resultsGrid");
 
 let titleTouched = false;
 let subtitleTouched = false;
@@ -28,8 +21,6 @@ let lastTopic = "";
 
 let aiAbort = null;
 let submitAbort = null;
-
-let lastImageUrl = "";
 
 function setSubmitLoading(isLoading) {
   submitBtn.disabled = !!isLoading;
@@ -46,67 +37,9 @@ function showError(msg) {
   errorBox.textContent = msg || "";
 }
 
-function showToast(text = "Скопировано") {
-  toastEl.textContent = text;
-  toastEl.hidden = false;
-  clearTimeout(showToast._t);
-  showToast._t = setTimeout(() => (toastEl.hidden = true), 1200);
-}
-
-function hideResult() {
-  lastImageUrl = "";
-
-  resultTitleEl.hidden = true;
-  resultCard.hidden = true;
-
-  thumbEl.hidden = true;
-  thumbEl.removeAttribute("src");
-
-  resultNameEl.textContent = "";
-
-  copyLinkBtn.onclick = null;
-  openLinkBtn.onclick = null;
-}
-
-async function copyToClipboard(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch (_) {
-    try {
-      const ta = document.createElement("textarea");
-      ta.value = text;
-      ta.style.position = "fixed";
-      ta.style.left = "-9999px";
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      ta.remove();
-      return true;
-    } catch {
-      return false;
-    }
-  }
-}
-
-function renderResult(url, size) {
-  lastImageUrl = url || "";
-  if (!lastImageUrl) return;
-
-  resultNameEl.textContent = size || "";
-
-  resultTitleEl.hidden = false;
-  resultCard.hidden = false;
-
-  thumbEl.hidden = false;
-  thumbEl.src = lastImageUrl;
-
-  copyLinkBtn.onclick = async () => {
-    const ok = await copyToClipboard(lastImageUrl);
-    showToast(ok ? "Ссылка скопирована" : "Не удалось скопировать");
-  };
-
-  openLinkBtn.onclick = () => window.open(lastImageUrl, "_blank", "noopener,noreferrer");
+function hideResults() {
+  resultsGrid.hidden = true;
+  resultsGrid.innerHTML = "";
 }
 
 function buildContext() {
@@ -171,7 +104,6 @@ async function generateTitle(topic, { force = false } = {}) {
   aiAbort = new AbortController();
 
   setIconLoading(regenTitleBtn, true);
-
   try {
     const resp = await postJson(
       AI_ENDPOINT,
@@ -197,7 +129,6 @@ async function generateSubtitle(topic, title, { force = false } = {}) {
   aiAbort = new AbortController();
 
   setIconLoading(regenSubtitleBtn, true);
-
   try {
     const resp = await postJson(
       AI_ENDPOINT,
@@ -232,6 +163,61 @@ async function autoGenerateFromTopic() {
   }
 }
 
+function filenameFor(url, idx, size) {
+  // простое имя, чтобы download выглядел нормально
+  const safeSize = (size || "img").replace(/[^0-9x]/g, "");
+  return `tochka_${safeSize}_${String(idx + 1).padStart(2, "0")}.png`;
+}
+
+function renderResults(images, size) {
+  const list = Array.isArray(images) ? images : [];
+  const filtered = list.filter((it) => it && typeof it.url === "string" && it.url.trim());
+
+  if (filtered.length === 0) {
+    hideResults();
+    throw new Error("В ответе нет изображений (result.images[].url).");
+  }
+
+  resultsGrid.innerHTML = "";
+
+  filtered.forEach((it, idx) => {
+    const url = it.url.trim();
+
+    const item = document.createElement("div");
+    item.className = "result-item";
+
+    // миниатюра кликабельная (просто открыть)
+    const aThumb = document.createElement("a");
+    aThumb.href = url;
+    aThumb.target = "_blank";
+    aThumb.rel = "noopener noreferrer";
+
+    const img = document.createElement("img");
+    img.className = "result-thumb";
+    img.loading = "lazy";
+    img.alt = "Превью";
+    img.src = url;
+
+    aThumb.appendChild(img);
+
+    // скачать
+    const aDl = document.createElement("a");
+    aDl.className = "download-btn";
+    aDl.textContent = "Скачать";
+    aDl.href = url;
+    aDl.target = "_blank";
+    aDl.rel = "noopener noreferrer";
+    aDl.setAttribute("download", filenameFor(url, idx, size));
+
+    item.appendChild(aThumb);
+    item.appendChild(aDl);
+
+    resultsGrid.appendChild(item);
+  });
+
+  resultsGrid.hidden = false;
+}
+
 async function submitGenerate() {
   const size = getSelectedSize();
   const count = getSelectedCount();
@@ -255,14 +241,14 @@ async function submitGenerate() {
 
   if (!resp?.ok) throw new Error(resp?.error || resp?.message || "Не удалось получить результат.");
 
-  const url = resp?.result?.images?.[0]?.url;
-  if (!url) throw new Error("В ответе нет url изображения.");
+  const images = resp?.result?.images;
+  if (!Array.isArray(images)) throw new Error("Неверный формат: result.images должен быть массивом.");
 
-  return { url, size };
+  return { images, size };
 }
 
 /* init */
-hideResult();
+hideResults();
 
 titleEl.addEventListener("input", () => { titleTouched = true; });
 subtitleEl.addEventListener("input", () => { subtitleTouched = true; });
@@ -285,7 +271,6 @@ regenTitleBtn.addEventListener("click", async () => {
   try {
     const t = await generateTitle(topic, { force: true });
     await generateSubtitle(topic, t, { force: false });
-    showToast("Заголовок обновлён");
   } catch (e) {
     showError(e?.message || "Ошибка генерации заголовка");
   }
@@ -298,7 +283,6 @@ regenSubtitleBtn.addEventListener("click", async () => {
   showError("");
   try {
     await generateSubtitle(topic, titleEl.value.trim(), { force: true });
-    showToast("Подзаголовок обновлён");
   } catch (e) {
     showError(e?.message || "Ошибка генерации подзаголовка");
   }
@@ -306,12 +290,12 @@ regenSubtitleBtn.addEventListener("click", async () => {
 
 submitBtn.addEventListener("click", async () => {
   showError("");
-  hideResult();
+  hideResults();
   setSubmitLoading(true);
 
   try {
-    const { url, size } = await submitGenerate();
-    renderResult(url, size);
+    const { images, size } = await submitGenerate();
+    renderResults(images, size);
   } catch (e) {
     showError(e?.message || "Ошибка");
   } finally {
