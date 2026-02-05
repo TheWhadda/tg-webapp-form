@@ -13,7 +13,7 @@
     rel="stylesheet"
   />
 
-  <link rel="stylesheet" href="/styles.css?v=16" />
+  <link rel="stylesheet" href="/styles.css?v=18" />
 </head>
 <body>
   <div class="app">
@@ -98,6 +98,57 @@
         <div class="hint">Можно выбрать только один размер.</div>
       </section>
 
+      <!-- ✅ COUNT: квадраты нарисованы -->
+      <section class="field">
+        <div class="label">Количество генераций</div>
+        <div class="counts">
+          <!-- 1 -->
+          <label class="count-item">
+            <input type="radio" name="count" value="1" checked />
+            <span class="count-ui">
+              <span class="radio-dot"></span>
+              <span class="count-visual one" aria-label="1"></span>
+            </span>
+          </label>
+
+          <!-- 2 -->
+          <label class="count-item">
+            <input type="radio" name="count" value="2" />
+            <span class="count-ui">
+              <span class="radio-dot"></span>
+              <span class="count-visual two" aria-label="2">
+                <span class="sq"></span><span class="sq"></span>
+              </span>
+            </span>
+          </label>
+
+          <!-- 4 -->
+          <label class="count-item">
+            <input type="radio" name="count" value="4" />
+            <span class="count-ui">
+              <span class="radio-dot"></span>
+              <span class="count-visual four" aria-label="4">
+                <span class="sq"></span><span class="sq"></span>
+                <span class="sq"></span><span class="sq"></span>
+              </span>
+            </span>
+          </label>
+
+          <!-- 10 -->
+          <label class="count-item">
+            <input type="radio" name="count" value="10" />
+            <span class="count-ui">
+              <span class="radio-dot"></span>
+              <span class="count-visual ten" aria-label="10">
+                <span class="sq"></span><span class="sq"></span><span class="sq"></span><span class="sq"></span><span class="sq"></span>
+                <span class="sq"></span><span class="sq"></span><span class="sq"></span><span class="sq"></span><span class="sq"></span>
+              </span>
+              <span class="count-x10">×10</span>
+            </span>
+          </label>
+        </div>
+      </section>
+
       <section class="actions">
         <button id="submit" class="btn-primary" type="button">
           <span class="btn-text">Вжух</span>
@@ -113,8 +164,7 @@
           <img id="thumb" class="thumb" alt="Превью изображения" hidden />
 
           <div class="result-body">
-            <!-- ✅ теперь сюда подставим размер -->
-            <div id="resultName" class="result-name">600x600</div>
+            <div id="resultName" class="result-name"></div>
             <button id="copyLink" class="link-btn" type="button" title="Нажмите, чтобы скопировать ссылку">
               <span class="copy-badge">копировать ссылку</span>
             </button>
@@ -128,6 +178,6 @@
     <div id="toast" class="toast" hidden>Скопировано</div>
   </div>
 
-  <script src="/app.js?v=16"></script>
+  <script src="/app.js?v=18"></script>
 </body>
 </html>
